@@ -97,6 +97,9 @@ const Dashboard = () => {
     navigate('/login');
   };
 
+  const goToDashboard = () => navigate('/dashboard');
+  const goToApologetas = () => navigate('/apologetas');
+
   return (
     <div className="min-h-screen bg-surface text-on-background">
       <div className="md:hidden">
@@ -215,12 +218,12 @@ const Dashboard = () => {
 
         <nav className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 items-center justify-between rounded-[2rem] bg-surface-container-low px-6 py-4 shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
           {[
-            { label: 'Dashboard', icon: 'dashboard', active: true },
-            { label: 'Misiones', icon: 'menu_book' },
-            { label: 'Apologetas', icon: 'shield' },
-            { label: 'Sectas', icon: 'flare' },
+            { label: 'Dashboard', icon: 'dashboard', active: true, action: goToDashboard },
+            { label: 'Misiones', icon: 'menu_book', active: false, action: () => {} },
+            { label: 'Apologetas', icon: 'shield', active: false, action: goToApologetas },
+            { label: 'Sectas', icon: 'flare', active: false, action: () => {} },
           ].map((item) => (
-            <button key={item.label} className="flex flex-col items-center gap-1">
+            <button key={item.label} onClick={item.action} className="flex flex-col items-center gap-1">
               <span className={`material-symbols-outlined text-xl ${item.active ? 'text-primary' : 'text-on-surface-variant/50'}`}>
                 {item.icon}
               </span>
@@ -259,22 +262,28 @@ const Dashboard = () => {
           </div>
 
           <nav className="flex-1 space-y-2">
-            <a className="flex items-center gap-4 rounded-l-full bg-[#715918]/5 px-4 py-3 font-bold text-[#715918] transition-all duration-300" href="#">
+            <button
+              onClick={goToDashboard}
+              className="flex w-full items-center gap-4 rounded-l-full bg-[#715918]/5 px-4 py-3 text-left font-bold text-[#715918] transition-all duration-300"
+            >
               <span className="material-symbols-outlined">dashboard</span>
               <span className="font-label">Dashboard</span>
-            </a>
-            <a className="flex items-center gap-4 rounded-l-full px-4 py-3 text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100" href="#">
+            </button>
+            <button className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100">
               <span className="material-symbols-outlined">explore_nearby</span>
               <span className="font-label">Misiones</span>
-            </a>
-            <a className="flex items-center gap-4 rounded-l-full px-4 py-3 text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100" href="#">
-              <span className="material-symbols-outlined">menu_book</span>
+            </button>
+            <button
+              onClick={goToApologetas}
+              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+            >
+              <span className="material-symbols-outlined">shield</span>
               <span className="font-label">Apologetas</span>
-            </a>
-            <a className="flex items-center gap-4 rounded-l-full px-4 py-3 text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100" href="#">
+            </button>
+            <button className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100">
               <span className="material-symbols-outlined">gavel</span>
               <span className="font-label">Sectas</span>
-            </a>
+            </button>
           </nav>
 
           <div className="space-y-2 border-t border-primary/5 pt-6">
