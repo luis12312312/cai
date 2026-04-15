@@ -100,6 +100,7 @@ const Dashboard = () => {
   const goToDashboard = () => navigate('/dashboard');
   const goToMisiones = () => navigate('/misiones');
   const goToApologetas = () => navigate('/apologetas');
+  const goToSectas = () => navigate('/sectas');
 
   return (
     <div className="min-h-screen bg-surface text-on-background">
@@ -222,7 +223,7 @@ const Dashboard = () => {
             { label: 'Dashboard', icon: 'dashboard', active: true, action: goToDashboard },
             { label: 'Misiones', icon: 'menu_book', active: false, action: goToMisiones },
             { label: 'Apologetas', icon: 'shield', active: false, action: goToApologetas },
-            { label: 'Sectas', icon: 'flare', active: false, action: () => {} },
+            { label: 'Sectas', icon: 'flare', active: false, action: goToSectas },
           ].map((item) => (
             <button key={item.label} onClick={item.action} className="flex flex-col items-center gap-1">
               <span className={`material-symbols-outlined text-xl ${item.active ? 'text-primary' : 'text-on-surface-variant/50'}`}>
@@ -252,8 +253,8 @@ const Dashboard = () => {
                 />
               </div>
               <div>
-                <h2 className="font-headline text-lg font-bold leading-tight text-[#715918]">Fr. Julian</h2>
-                <p className="text-xs font-label uppercase tracking-widest opacity-60">Presbitero</p>
+                <h2 className="font-headline text-lg font-bold leading-tight text-[#715918]">Padre Luis Toro</h2>
+                <p className="text-xs font-label uppercase tracking-widest opacity-60">Sacerdote</p>
               </div>
             </div>
             <button className="vatican-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium text-on-primary shadow-lg shadow-primary/10 transition-transform hover:scale-[1.02] active:scale-[0.98]">
@@ -284,7 +285,10 @@ const Dashboard = () => {
               <span className="material-symbols-outlined">shield</span>
               <span className="font-label">Apologetas</span>
             </button>
-            <button className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100">
+            <button
+              onClick={goToSectas}
+              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+            >
               <span className="material-symbols-outlined">gavel</span>
               <span className="font-label">Sectas</span>
             </button>
@@ -330,7 +334,7 @@ const Dashboard = () => {
                 </button>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full border border-secondary/10 bg-secondary-container/20">
                   <img
-                    alt="Fr. Julian profile"
+                    alt="Padre Luis Toro profile"
                     className="h-full w-full rounded-full object-cover"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4FPW5a5r2emMl-FP0G6anRID7uZKA82HEHefYctG5RS-JpV6n3uxzl-8WPyjlYC9DzyWSMx-xeb9bHOFCG6yYvx0Vz8wS4M7UkVK0xODhoLKc7_WRq8nXNucuDXP6xWWEYNetgg_O1UB671Hm0REOGXtESY4fkT7SqFdLn_rO-ff1F1sJ9IyIqyEli4dFk6xgCNw6R9coWJBmK28V3PkkVD178YXiwyVNBvacOwEBADcLaz_F1V6v3Ahrf_lg9_3KJK-qRrwv"
                   />
@@ -344,7 +348,7 @@ const Dashboard = () => {
               <div className="max-w-2xl">
                 <h2 className="font-headline text-5xl font-bold leading-tight text-on-surface">Estado de la Defensa de la Fe</h2>
                 <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-                  Bienvenido, Fr. Julian. El despliegue itinerante se mantiene activo en 14 diocesis. El rigor academico y
+                  Bienvenido, Padre Luis Toro. El despliegue itinerante se mantiene activo en 14 diocesis. El rigor academico y
                   la caridad pastoral guian nuestra mision.
                 </p>
               </div>
@@ -424,7 +428,10 @@ const Dashboard = () => {
                     </article>
                   ))}
                 </div>
-                <button className="w-full rounded-xl bg-primary/5 py-4 text-sm font-label font-bold uppercase tracking-widest text-primary transition-colors hover:bg-primary/10">
+                <button
+                  onClick={goToSectas}
+                  className="w-full rounded-xl bg-primary/5 py-4 text-sm font-label font-bold uppercase tracking-widest text-primary transition-colors hover:bg-primary/10"
+                >
                   Ver Todo el Historial
                 </button>
               </div>

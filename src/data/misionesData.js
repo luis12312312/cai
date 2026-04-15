@@ -143,3 +143,84 @@ export const filtrosApologetas = [
 ];
 
 export const ordenesApologetas = ['Mas Activos', 'Recientes', 'Mas Formadores'];
+
+export const sectasEncontradas = [
+  {
+    id: 'secta-001',
+    nombre: 'Luz del Nuevo Pacto',
+    categoria: 'Sincretismo biblico',
+    riesgo: 'Alto',
+    zona: 'Zona norte de Queretaro',
+    fecha: '14 de abril',
+    estado: 'Seguimiento abierto',
+    referente: 'Miguel Torres',
+    descripcion:
+      'Grupo itinerante que mezcla lenguaje cristiano con practicas esotericas y captacion intensiva en colonias populares.',
+    senales: ['Proselitismo en plazas', 'Material impreso ambiguo', 'Promesas de sanacion inmediata'],
+  },
+  {
+    id: 'secta-002',
+    nombre: 'Camino de Revelacion Final',
+    categoria: 'Mesianismo contemporaneo',
+    riesgo: 'Medio',
+    zona: 'Villa Esperanza',
+    fecha: '11 de abril',
+    estado: 'Observacion pastoral',
+    referente: 'Andrea Salazar',
+    descripcion:
+      'Nucleo reducido que convoca reuniones privadas en casas y sostiene interpretaciones apocalipticas sin acompañamiento eclesial.',
+    senales: ['Reuniones cerradas', 'Lecturas apocalipticas', 'Desconfianza a parroquias'],
+  },
+  {
+    id: 'secta-003',
+    nombre: 'Comunidad del Septimo Trono',
+    categoria: 'Pseudo restauracionismo',
+    riesgo: 'Critico',
+    zona: 'Periferia de San Juan',
+    fecha: '09 de abril',
+    estado: 'Respuesta inmediata',
+    referente: 'Carlos Mena',
+    descripcion:
+      'Promueve ruptura total con sacramentos y autoridad apostolica, con fuerte discurso de control moral sobre familias vulnerables.',
+    senales: ['Aislamiento comunitario', 'Negacion sacramental', 'Liderazgo coercitivo'],
+  },
+  {
+    id: 'secta-004',
+    nombre: 'Voz de la Aurora',
+    categoria: 'Nueva espiritualidad',
+    riesgo: 'Bajo',
+    zona: 'Centro historico',
+    fecha: '05 de abril',
+    estado: 'Caso documentado',
+    referente: 'Paula Herrera',
+    descripcion:
+      'Circulo de meditacion con lenguaje espiritualista que atrae a jovenes con mensajes de autosalvacion y relativismo doctrinal.',
+    senales: ['Charlas motivacionales', 'Simbolismo difuso', 'Capacitaciones pagadas'],
+  },
+  {
+    id: 'secta-005',
+    nombre: 'Asamblea de la Ultima Trompeta',
+    categoria: 'Apocalipticismo sectario',
+    riesgo: 'Alto',
+    zona: 'Colegio San Lucas',
+    fecha: '02 de abril',
+    estado: 'Equipo movilizado',
+    referente: 'Renato Valdes',
+    descripcion:
+      'Difunde mensajes alarmistas entre familias y estudiantes, generando miedo espiritual y rechazo a la vida sacramental ordinaria.',
+    senales: ['Predicacion alarmista', 'Captacion juvenil', 'Uso agresivo de redes sociales'],
+  },
+];
+
+export const resumenSectas = [
+  { valor: '05', etiqueta: 'Sectas detectadas' },
+  { valor: '02', etiqueta: 'Riesgo alto' },
+  { valor: '01', etiqueta: 'Critico' },
+];
+
+export const filtrosSectas = [
+  'Todas las categorias',
+  'Sincretismo biblico',
+  'Mesianismo contemporaneo',
+  'Apocalipticismo sectario',
+];

@@ -8,13 +8,86 @@ import {
   resumenApologetas,
 } from '../data/misionesData';
 
+const buildMissionMediaSamples = (mision) => {
+  const evidenciaTexto = (mision.evidencia || '').toLowerCase();
+  const media = [
+    {
+      id: `${mision.id}-img-1`,
+      type: 'image',
+      title: 'Registro del encuentro',
+      description: `Vista general de la mision en ${mision.lugar}.`,
+      src: 'https://images.unsplash.com/photo-1519491050282-cf00c82424b4?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      id: `${mision.id}-img-2`,
+      type: 'image',
+      title: 'Participacion del equipo',
+      description: 'Momento representativo del dialogo y acompanamiento pastoral.',
+      src: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?auto=format&fit=crop&w=1200&q=80',
+    },
+  ];
+  if (evidenciaTexto.includes('video')) {
+    media.push({
+      id: `${mision.id}-video-1`,
+      type: 'video',
+      title: 'Clip de la mision',
+      description: 'Video de ejemplo para previsualizar la evidencia audiovisual.',
+      src: 'https://v.ftcdn.net/02/29/87/38/700_F_229873835_T267cpIinTDRj1XCOfPe7unkvbmqtR5C_ST.mp4',
+      poster: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1200&q=80',
+    });
+  }
+
+  return media;
+};
+
+const buildMissionEvidenceDetails = (mision, apologetaNombre) => {
+  const evidenciaTexto = (mision.evidencia || '').toLowerCase();
+  const evidenciaItems = [];
+
+  if (evidenciaTexto.includes('foto')) {
+    evidenciaItems.push('Registro fotografico de la actividad');
+  }
+
+  if (evidenciaTexto.includes('video')) {
+    evidenciaItems.push('Clips de video del desarrollo de la mision');
+  }
+
+  if (evidenciaTexto.includes('testimonio')) {
+    evidenciaItems.push('Testimonios recogidos durante la jornada');
+  }
+
+  if (evidenciaTexto.includes('presentacion')) {
+    evidenciaItems.push('Presentacion empleada en la sesion formativa');
+  }
+
+  if (evidenciaTexto.includes('galeria')) {
+    evidenciaItems.push('Galeria fotografica consolidada del evento');
+  }
+
+  if (evidenciaItems.length === 0) {
+    evidenciaItems.push(`Soporte principal registrado: ${mision.evidencia}`);
+  }
+
+  return {
+    ...mision,
+    evidenciaItems,
+    mediaSamples: buildMissionMediaSamples(mision),
+    estado: 'Mision realizada',
+    responsable: apologetaNombre,
+    observaciones: `La evidencia de ${mision.titulo} quedo asociada al seguimiento pastoral de ${apologetaNombre}.`,
+  };
+};
+
 const Apologetas = () => {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(apologetas[0]?.id ?? '');
+  const [selectedMission, setSelectedMission] = useState(null);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
   const goToDashboard = () => navigate('/dashboard');
   const goToApologetas = () => navigate('/apologetas');
   const goToMisiones = () => navigate('/misiones');
+  const goToSectas = () => navigate('/sectas');
   const handleLogout = (e) => {
     e.preventDefault();
     navigate('/login');
@@ -24,7 +97,14 @@ const Apologetas = () => {
     () =>
       apologetas.map((apologeta) => ({
         ...apologeta,
-        misiones: misiones.filter((mision) => mision.apologetas.includes(apologeta.id)),
+        misiones: misiones
+          .filter((mision) => mision.apologetas.includes(apologeta.id))
+          .map((mision) => ({
+            ...mision,
+            nombresApologetas: apologetas
+              .filter((item) => mision.apologetas.includes(item.id))
+              .map((item) => item.nombre),
+          })),
       })),
     [],
   );
@@ -33,7 +113,37 @@ const Apologetas = () => {
     setSelectedId((current) => (current === id ? '' : id));
   };
 
-  const renderMissionItem = (mision, compact = false) => (
+  const openMissionDetail = (mision, apologetaNombre) => {
+    setSelectedMission(buildMissionEvidenceDetails(mision, apologetaNombre));
+    setCurrentMediaIndex(0);
+  };
+
+  const closeMissionDetail = () => {
+    setSelectedMission(null);
+    setCurrentMediaIndex(0);
+  };
+
+  const showPreviousMedia = () => {
+    if (!selectedMission?.mediaSamples?.length) {
+      return;
+    }
+
+    setCurrentMediaIndex((current) =>
+      current === 0 ? selectedMission.mediaSamples.length - 1 : current - 1,
+    );
+  };
+
+  const showNextMedia = () => {
+    if (!selectedMission?.mediaSamples?.length) {
+      return;
+    }
+
+    setCurrentMediaIndex((current) =>
+      current === selectedMission.mediaSamples.length - 1 ? 0 : current + 1,
+    );
+  };
+
+  const renderMissionItem = (mision, apologetaNombre, compact = false) => (
     <article
       key={mision.id}
       className={`rounded-2xl bg-surface-container-low p-4 ${compact ? '' : 'border border-outline-variant/20'}`}
@@ -44,7 +154,11 @@ const Apologetas = () => {
           <p className="mt-1 text-xs font-label uppercase tracking-[0.18em] text-secondary">{mision.tipo}</p>
           <p className="mt-3 text-sm leading-6 text-on-surface-variant">{mision.resumen}</p>
         </div>
-        <button className="rounded-full border border-primary/20 px-4 py-2 font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+        <button
+          type="button"
+          onClick={() => openMissionDetail(mision, apologetaNombre)}
+          className="rounded-full border border-primary/20 px-4 py-2 font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/5"
+        >
           Ver evidencias
         </button>
       </div>
@@ -62,8 +176,171 @@ const Apologetas = () => {
     </article>
   );
 
+  const renderMissionDetail = () => {
+    if (!selectedMission) {
+      return null;
+    }
+
+    const currentMedia = selectedMission.mediaSamples[currentMediaIndex];
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-4 md:items-center md:p-8">
+        <div className="absolute inset-0" aria-hidden="true" onClick={closeMissionDetail}></div>
+        <section className="relative z-10 max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[2rem] bg-surface-container-low p-6 shadow-[0_20px_60px_rgba(26,28,26,0.22)] md:p-8">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="font-label text-[10px] uppercase tracking-[0.24em] text-secondary">{selectedMission.estado}</p>
+              <h2 className="mt-3 font-headline text-4xl leading-[0.98] text-on-surface">{selectedMission.titulo}</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-on-surface-variant">{selectedMission.resumen}</p>
+            </div>
+            <button
+              type="button"
+              onClick={closeMissionDetail}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-container-lowest text-primary"
+              aria-label="Cerrar detalle de la mision"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+            <article className="rounded-2xl bg-surface-container-lowest p-4">
+              <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Lugar</p>
+              <p className="mt-2 text-sm font-semibold text-on-surface">{selectedMission.lugar}</p>
+            </article>
+            <article className="rounded-2xl bg-surface-container-lowest p-4">
+              <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Fecha</p>
+              <p className="mt-2 text-sm font-semibold text-on-surface">{selectedMission.fecha}</p>
+            </article>
+            <article className="rounded-2xl bg-surface-container-lowest p-4">
+              <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Evidencia</p>
+              <p className="mt-2 text-sm font-semibold text-on-surface">{selectedMission.evidencia}</p>
+            </article>
+            <article className="rounded-2xl bg-surface-container-lowest p-4">
+              <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Responsable</p>
+              <p className="mt-2 text-sm font-semibold text-on-surface">{selectedMission.responsable}</p>
+            </article>
+          </div>
+
+          <div className="mt-6 rounded-[1.6rem] bg-surface-container-lowest p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-label text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">Carrusel de evidencias</p>
+                <p className="mt-2 text-sm leading-6 text-on-surface-variant">Contenido de ejemplo para ilustrar imagenes y video de la mision.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={showPreviousMedia}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant/30 text-primary"
+                  aria-label="Evidencia anterior"
+                >
+                  <span className="material-symbols-outlined">chevron_left</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={showNextMedia}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant/30 text-primary"
+                  aria-label="Siguiente evidencia"
+                >
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 overflow-hidden rounded-[1.4rem] bg-surface">
+              {currentMedia.type === 'video' ? (
+                <video className="h-[320px] w-full bg-black object-cover md:h-[420px]" controls poster={currentMedia.poster}>
+                  <source src={currentMedia.src} type="video/mp4" />
+                </video>
+              ) : (
+                <img alt={currentMedia.title} className="h-[320px] w-full object-cover md:h-[420px]" src={currentMedia.src} />
+              )}
+            </div>
+
+            <div className="mt-4 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-on-surface">{currentMedia.title}</p>
+                <p className="mt-1 text-sm leading-6 text-on-surface-variant">{currentMedia.description}</p>
+              </div>
+              <span className="rounded-full bg-primary/10 px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
+                {currentMedia.type === 'video' ? 'Video' : 'Imagen'}
+              </span>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {selectedMission.mediaSamples.map((item, index) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setCurrentMediaIndex(index)}
+                  className={`rounded-full px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] ${
+                    index === currentMediaIndex ? 'bg-primary text-white' : 'bg-surface text-on-surface-variant'
+                  }`}
+                >
+                  {item.type === 'video' ? `Video ${index + 1}` : `Imagen ${index + 1}`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <div className="rounded-[1.5rem] bg-surface-container-lowest p-5">
+              <p className="font-label text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">Detalle de evidencias</p>
+              <div className="mt-4 space-y-3">
+                {selectedMission.evidenciaItems.map((item) => (
+                  <div key={item} className="flex items-start gap-3 rounded-2xl bg-primary/5 px-4 py-3">
+                    <span className="material-symbols-outlined text-primary">task_alt</span>
+                    <p className="text-sm leading-6 text-on-surface">{item}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-outline-variant/20 bg-surface px-4 py-4">
+                <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Observaciones</p>
+                <p className="mt-2 text-sm leading-6 text-on-surface-variant">{selectedMission.observaciones}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <article className="rounded-[1.5rem] bg-surface-container-lowest p-5">
+                <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Equipo participante</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectedMission.nombresApologetas.map((nombre) => (
+                    <span key={nombre} className="rounded-full bg-primary/10 px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
+                      {nombre}
+                    </span>
+                  ))}
+                </div>
+              </article>
+
+              <article className="rounded-[1.5rem] bg-surface-container-lowest p-5">
+                <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Resumen rapido</p>
+                <div className="mt-4 space-y-3 text-sm text-on-surface-variant">
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Tipo de mision</span>
+                    <span className="font-semibold text-on-surface">{selectedMission.tipo}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Estado</span>
+                    <span className="font-semibold text-primary">{selectedMission.estado}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Participantes</span>
+                    <span className="font-semibold text-on-surface">{selectedMission.nombresApologetas.length}</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-surface text-on-background">
+      {renderMissionDetail()}
       <div className="md:hidden">
         <main className="mx-auto max-w-sm px-5 pb-32 pt-5">
           <header className="flex items-center justify-between">
@@ -160,7 +437,7 @@ const Apologetas = () => {
                         Ir a modulo
                       </button>
                     </div>
-                    {apologeta.misiones.map((mision) => renderMissionItem(mision, true))}
+                    {apologeta.misiones.map((mision) => renderMissionItem(mision, apologeta.nombre, true))}
                   </div>
                 )}
               </article>
@@ -181,7 +458,7 @@ const Apologetas = () => {
             { label: 'Dashboard', icon: 'dashboard', active: false, action: goToDashboard },
             { label: 'Misiones', icon: 'menu_book', active: false, action: goToMisiones },
             { label: 'Apologetas', icon: 'shield', active: true, action: goToApologetas },
-            { label: 'Sectas', icon: 'flare', active: false, action: () => {} },
+            { label: 'Sectas', icon: 'flare', active: false, action: goToSectas },
           ].map((item) => (
             <button key={item.label} onClick={item.action} className="flex flex-col items-center gap-1">
               <span className={`material-symbols-outlined text-xl ${item.active ? 'text-primary' : 'text-on-surface-variant/50'}`}>
@@ -211,8 +488,8 @@ const Apologetas = () => {
                 />
               </div>
               <div>
-                <h2 className="font-headline text-lg font-bold leading-tight text-[#715918]">Fr. Julian</h2>
-                <p className="text-xs font-label uppercase tracking-widest opacity-60">Presbitero</p>
+                <h2 className="font-headline text-lg font-bold leading-tight text-[#715918]">Padre Luis Toro</h2>
+                <p className="text-xs font-label uppercase tracking-widest opacity-60">Sacerdote</p>
               </div>
             </div>
             <button
@@ -243,7 +520,10 @@ const Apologetas = () => {
               <span className="material-symbols-outlined">shield</span>
               <span className="font-label">Apologetas</span>
             </button>
-            <button className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100">
+            <button
+              onClick={goToSectas}
+              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+            >
               <span className="material-symbols-outlined">gavel</span>
               <span className="font-label">Sectas</span>
             </button>
@@ -368,7 +648,7 @@ const Apologetas = () => {
                           Gestionar misiones
                         </button>
                       </div>
-                      {apologeta.misiones.map((mision) => renderMissionItem(mision))}
+                      {apologeta.misiones.map((mision) => renderMissionItem(mision, apologeta.nombre))}
                     </div>
                   )}
                 </article>

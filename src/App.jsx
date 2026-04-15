@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Apologetas from './pages/Apologetas';
 import Misiones from './pages/Misiones';
+import Sectas from './pages/Sectas';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/apologetas" element={<Apologetas />} />
         <Route path="/misiones" element={<Misiones />} />
+        <Route path="/sectas" element={<Sectas />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
