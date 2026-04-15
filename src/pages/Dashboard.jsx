@@ -112,7 +112,9 @@ const Dashboard = () => {
                 </span>
               </div>
               <div>
-                <p className="font-headline text-[1.7rem] font-bold leading-none text-primary">Cruzada Apologetica</p>
+                <p className="font-headline text-[1.45rem] font-bold leading-tight text-primary">
+                  Plataforma Cruzada Apologetica Itinerante
+                </p>
               </div>
             </div>
             <button className="flex h-10 w-10 items-center justify-center rounded-full text-primary">
