@@ -374,9 +374,12 @@ const Apologetas = () => {
                 <p className="text-xs font-label uppercase tracking-widest text-on-surface-variant">Sacerdote</p>
               </div>
             </div>
-            <span className="rounded-full bg-primary/10 px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
-              En sesion
-            </span>
+            <button
+              onClick={handleLogout}
+              className="rounded-full border border-error/20 bg-error/10 px-3 py-2 font-label text-[10px] uppercase tracking-[0.16em] text-error"
+            >
+              Cerrar sesion
+            </button>
           </section>
 
           <p className="mt-5 max-w-[19rem] text-sm leading-6 text-on-surface-variant">
