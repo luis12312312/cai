@@ -1,0 +1,73 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "outline-variant": "#d0c5b4",
+        "primary-fixed-dim": "#e4c377",
+        "on-surface": "#1a1c1a",
+        "inverse-surface": "#2f312e",
+        "secondary-container": "#959efd",
+        "background": "#faf9f5",
+        "tertiary-fixed": "#e2e2e2",
+        "on-tertiary-fixed": "#1a1c1c",
+        "outline": "#7e7667",
+        "error-container": "#ffdad6",
+        "surface-container-lowest": "#ffffff",
+        "inverse-on-surface": "#f1f1ed",
+        "secondary-fixed": "#e0e0ff",
+        "error": "#ba1a1a",
+        "on-tertiary-fixed-variant": "#454747",
+        "tertiary": "#5b5c5c",
+        "surface-container-high": "#e8e8e4",
+        "on-secondary-fixed-variant": "#343d96",
+        "surface-tint": "#745b1a",
+        "surface-variant": "#e2e3df",
+        "surface-bright": "#faf9f5",
+        "surface": "#faf9f5",
+        "primary": "#715918",
+        "on-primary": "#ffffff",
+        "surface-dim": "#dadad6",
+        "on-tertiary": "#ffffff",
+        "on-secondary": "#ffffff",
+        "on-primary-fixed": "#251a00",
+        "surface-container-low": "#f4f4f0",
+        "surface-container": "#eeeeea",
+        "on-secondary-fixed": "#000767",
+        "inverse-primary": "#e4c377",
+        "secondary": "#4c56af",
+        "on-primary-container": "#fffbff",
+        "on-surface-variant": "#4d4639",
+        "on-secondary-container": "#27308a",
+        "on-primary-fixed-variant": "#5a4302",
+        "on-background": "#1a1c1a",
+        "tertiary-container": "#737575",
+        "on-tertiary-container": "#fdfcfc",
+        "tertiary-fixed-dim": "#c6c6c6",
+        "secondary-fixed-dim": "#bdc2ff",
+        "on-error": "#ffffff",
+        "primary-container": "#8c712f",
+        "surface-container-highest": "#e2e3df",
+        "on-error-container": "#93000a",
+        "primary-fixed": "#ffdf99"
+      },
+      "borderRadius": {
+        "DEFAULT": "0.125rem",
+        "lg": "0.25rem",
+        "xl": "0.5rem",
+        "full": "0.75rem"
+      },
+      "fontFamily": {
+        "headline": ["Noto Serif"],
+        "body": ["Plus Jakarta Sans"],
+        "label": ["Plus Jakarta Sans"]
+      }
+    },
+  },
+  plugins: [],
+}

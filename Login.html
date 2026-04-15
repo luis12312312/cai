@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#d0c5b4",
+                    "primary-fixed-dim": "#e4c377",
+                    "on-surface": "#1a1c1a",
+                    "inverse-surface": "#2f312e",
+                    "secondary-container": "#959efd",
+                    "background": "#faf9f5",
+                    "tertiary-fixed": "#e2e2e2",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "outline": "#7e7667",
+                    "error-container": "#ffdad6",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-on-surface": "#f1f1ed",
+                    "secondary-fixed": "#e0e0ff",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "tertiary": "#5b5c5c",
+                    "surface-container-high": "#e8e8e4",
+                    "on-secondary-fixed-variant": "#343d96",
+                    "surface-tint": "#745b1a",
+                    "surface-variant": "#e2e3df",
+                    "surface-bright": "#faf9f5",
+                    "surface": "#faf9f5",
+                    "primary": "#715918",
+                    "on-primary": "#ffffff",
+                    "surface-dim": "#dadad6",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#251a00",
+                    "surface-container-low": "#f4f4f0",
+                    "surface-container": "#eeeeea",
+                    "on-secondary-fixed": "#000767",
+                    "inverse-primary": "#e4c377",
+                    "secondary": "#4c56af",
+                    "on-primary-container": "#fffbff",
+                    "on-surface-variant": "#4d4639",
+                    "on-secondary-container": "#27308a",
+                    "on-primary-fixed-variant": "#5a4302",
+                    "on-background": "#1a1c1a",
+                    "tertiary-container": "#737575",
+                    "on-tertiary-container": "#fdfcfc",
+                    "tertiary-fixed-dim": "#c6c6c6",
+                    "secondary-fixed-dim": "#bdc2ff",
+                    "on-error": "#ffffff",
+                    "primary-container": "#8c712f",
+                    "surface-container-highest": "#e2e3df",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#ffdf99"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .arched-header {
+        border-radius: 0.75rem 0.75rem 0.25rem 0.25rem;
+      }
+      .glass-effect {
+        backdrop-filter: blur(20px);
+        background-color: rgba(250, 249, 245, 0.8);
+      }
+      .vatican-gradient {
+        background: linear-gradient(135deg, #715918 0%, #8c712f 100%);
+      }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+<!-- Background Architectural Motif -->
+<div class="absolute inset-0 z-0 opacity-10 pointer-events-none">
+<img alt="" class="w-full h-full object-cover grayscale" data-alt="Interior of a majestic cathedral with soaring stone arches and soft sunlight filtering through high windows in monochrome" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgjmRHDMsIitW5NaB6l6C00CvYAAfhEyGJkW4WcTh_lZv8G4ApkVJ01QjNbFYwAp0H-mIZiNkg-2Bo8_NfZ3kfzwbrHe4PRuPpNqh5Q9aisu_c2QU9R7hhWy02D9lCnbMslxgQi3tcLh25fzjo7mZk5LHbppcrqpF0nNyeooHEd297Ir-yAo4uTqk0FamcMmuxaqWsYFMlDUF7wBB8Li7fjB2Ud-0vs2i42y_MA1-hD3CrRF3Un9n08NmD3FiuutAqfLCyUrhE"/>
+</div>
+<!-- Decorative Elements -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-outline-variant opacity-30 z-10"></div>
+<main class="relative z-20 w-full max-w-md">
+<!-- Main Login Card -->
+<div class="bg-surface-container-lowest shadow-[0px_0px_40px_rgba(26,28,26,0.06)] overflow-hidden rounded-xl border border-outline-variant/10">
+<!-- Arched Visual Header -->
+<div class="h-32 relative arched-header overflow-hidden mx-4 mt-4">
+<img alt="" class="w-full h-full object-cover" data-alt="Macro detail of gold leaf on an ancient religious manuscript with intricate textures and soft warm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJhNBRCnFu-YR3P-dnoFY3n2WrO0E5DOVG63XCLYJBv9TqKfgyk5PPwMGkYKLnorkp-C_YzjaUfH7dz03Hi4oi3mTPqkIivktv75mjRr0GfGglSoGuvR0zZlc2S7tHgJHjd8v1iroeTirBzi3DPyZtEWY6ZeKDxkTgK0GAQQbxSBB3X8cU-BPfdWp3jmN-kVSJeRBVFUwhXLObVxK1d5fHnIUaFJMQu_Vpi52XDfMdC-_1pn5n0Vv3xVYNTy1GUnlfrHcKs6-m"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent"></div>
+<div class="absolute bottom-4 left-6">
+<span class="text-white/80 font-label text-[10px] tracking-[0.2em] uppercase">Ecclesia Digitum</span>
+</div>
+</div>
+<!-- Content Container -->
+<div class="px-10 py-12">
+<!-- Branding -->
+<header class="text-center mb-10">
+<h1 class="font-headline text-2xl font-bold text-primary tracking-tight leading-tight">
+                        Plataforma Cruzada<br/>
+<span class="text-lg font-normal italic opacity-80">Apologética Itinerante</span>
+</h1>
+<div class="mt-4 flex justify-center items-center gap-4">
+<div class="h-px w-8 bg-outline-variant/40"></div>
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">shield_person</span>
+<div class="h-px w-8 bg-outline-variant/40"></div>
+</div>
+</header>
+<!-- Form -->
+<form action="#" class="space-y-8" method="POST">
+<!-- Username Field -->
+<div class="space-y-1">
+<label class="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" for="email">
+                            Correo o ID de Usuario
+                        </label>
+<div class="relative group">
+<input class="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-1 text-on-surface focus:ring-0 focus:border-primary transition-all duration-300 placeholder:text-on-surface/20" id="email" name="email" placeholder="ej. veritas@cruzada.org" required="" type="text"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-1">
+<div class="flex justify-between items-end px-1">
+<label class="block font-label text-[11px] font-medium text-outline uppercase tracking-widest" for="password">
+                                Contraseña
+                            </label>
+<a class="font-label text-[10px] text-primary/70 hover:text-primary transition-colors duration-300 underline decoration-primary/20 underline-offset-4" href="#">
+                                ¿Olvidó su contraseña?
+                            </a>
+</div>
+<div class="relative">
+<input class="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-1 text-on-surface focus:ring-0 focus:border-primary transition-all duration-300" id="password" name="password" required="" type="password"/>
+</div>
+</div>
+<!-- Options -->
+<div class="flex items-center space-x-3 px-1">
+<div class="relative flex items-center">
+<input class="h-4 w-4 rounded-sm border-outline-variant text-primary focus:ring-primary/20 bg-transparent" id="remember" name="remember" type="checkbox"/>
+</div>
+<label class="font-label text-xs text-on-surface-variant font-medium" for="remember">
+                            Mantener sesión iniciada
+                        </label>
+</div>
+<!-- Submit Action -->
+<div class="pt-4">
+<button class="w-full vatican-gradient py-4 rounded-md text-white font-label font-semibold tracking-widest uppercase text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3" type="submit">
+                            Acceder
+                            <span class="material-symbols-outlined text-sm">login</span>
+</button>
+</div><div class="mt-6 text-center"><span class="font-label text-[11px] text-outline uppercase tracking-widest">¿No tiene una cuenta? </span><a class="font-label text-[11px] text-primary font-bold hover:text-primary/80 transition-colors duration-300 underline decoration-primary/20 underline-offset-4 uppercase tracking-widest" href="#">Registrarse</a></div>
+</form>
+<!-- Footer Support -->
+<div class="mt-12 text-center">
+<p class="font-label text-[10px] text-outline uppercase tracking-[0.15em] leading-relaxed">Sub lumine Ecclesiae</p>
+</div>
+</div>
+</div>
+<!-- Global Footer Branding (Static for Login) -->
+<footer class="mt-8 text-center flex flex-col items-center gap-4 w-full">
+<div class="h-px w-12 bg-outline-variant opacity-40"></div>
+<p class="font-label text-[10px] text-on-surface/40 tracking-[0.2em] uppercase">
+                © MMXXIV Plataforma Cruzada Apologética Itinerante
+            </p>
+<div class="flex gap-6 opacity-40">
+<a class="font-label text-[10px] uppercase tracking-widest hover:opacity-100 transition-opacity" href="#">Privacidad</a>
+<a class="font-label text-[10px] uppercase tracking-widest hover:opacity-100 transition-opacity" href="#">Términos de Fe</a>
+</div>
+</footer>
+</main>
+<!-- Decorative Corner Element -->
+<div class="fixed bottom-0 right-0 p-12 opacity-5 hidden md:block">
+<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'FILL' 0, 'wght' 100;">policy</span>
+</div>
+</body></html>
