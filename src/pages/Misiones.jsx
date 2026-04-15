@@ -539,6 +539,25 @@ const Misiones = () => {
             </button>
           </header>
 
+          <section className="mt-5 flex items-center justify-between rounded-[1.6rem] bg-surface-container-low px-4 py-4 shadow-[0_8px_24px_rgba(26,28,26,0.05)]">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 overflow-hidden rounded-full border border-primary/20">
+                <img
+                  alt="Insignia"
+                  className="h-full w-full object-cover"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsA9vxxIuSP7qNG1e99bXXi-5fFMtg83C45ejeEN0AP56SQTm_kmFT9-NJPL-fRJ9dbSzB7PXCHNEyeXrgzlBENs8oajQkFV5sVOnmPrG9IPtkmqYJF9tQMCtvqZFHACLprAUlENal-TockvP34u0U4NECCLbyBKv4EXczJ1pJxv8ArWR6jvKEifgjVOv0Xp1szkGrJPVApiKGw0gPYk6btrJBeovJwSundEl4zuc2JDbBVBE_mWCv7dkKRsOlAQtJoTuG54GL"
+                />
+              </div>
+              <div>
+                <p className="font-headline text-lg font-bold leading-tight text-primary">Padre Luis Toro</p>
+                <p className="text-xs font-label uppercase tracking-widest text-on-surface-variant">Sacerdote</p>
+              </div>
+            </div>
+            <span className="rounded-full bg-primary/10 px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
+              En sesion
+            </span>
+          </section>
+
           <p className="mt-5 text-sm leading-6 text-on-surface-variant">
             Administra las misiones, registra nuevas salidas y asigna varios apologetas en un mismo frente pastoral.
           </p>
