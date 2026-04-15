@@ -1,98 +1,66 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const apologetas = [
-  {
-    nombre: 'Renato Valdes',
-    especialidad: 'Apologetica Biblica',
-    grado: 'Certificado de Apologetica',
-    descripcion: 'Acompana grupos juveniles y desarrolla respuestas claras sobre fe, Escritura y tradicion.',
-    defensas: 86,
-    etiqueta: 'Activo en parroquias',
-    icono: 'shield',
-    color: 'text-primary',
-    fondo: 'bg-primary/10',
-  },
-  {
-    nombre: 'Carlos Mena',
-    especialidad: 'Doctrina Catolica',
-    grado: 'Estudios Propios',
-    descripcion: 'Apoya procesos formativos para catequistas y responde consultas doctrinales frecuentes.',
-    defensas: 64,
-    etiqueta: 'Formacion basica',
-    icono: 'menu_book',
-    color: 'text-secondary',
-    fondo: 'bg-secondary/10',
-  },
-  {
-    nombre: 'Daniel Rojas',
-    especialidad: 'Historia de la Iglesia',
-    grado: 'Certificado Pastoral',
-    descripcion: 'Colabora en charlas historicas y materiales para responder objeciones sobre la Iglesia.',
-    defensas: 71,
-    etiqueta: 'Archivo historico',
-    icono: 'history_edu',
-    color: 'text-primary',
-    fondo: 'bg-primary/10',
-  },
-  {
-    nombre: 'Miguel Torres',
-    especialidad: 'Sectas y Nuevos Movimientos',
-    grado: 'Escuela de Evangelizacion',
-    descripcion: 'Da seguimiento a casos de confusion doctrinal y orienta con material pastoral accesible.',
-    defensas: 93,
-    etiqueta: 'Acompanamiento',
-    icono: 'flare',
-    color: 'text-error',
-    fondo: 'bg-error/10',
-  },
-  {
-    nombre: 'Andrea Salazar',
-    especialidad: 'Filosofia Cristiana',
-    grado: 'Diplomado en Apologetica',
-    descripcion: 'Prepara talleres introductorios sobre razon, moral y dialogo con cultura contemporanea.',
-    defensas: 58,
-    etiqueta: 'Formadora',
-    icono: 'psychology',
-    color: 'text-secondary',
-    fondo: 'bg-secondary/10',
-  },
-  {
-    nombre: 'Paula Herrera',
-    especialidad: 'Familia y Bioetica',
-    grado: 'Estudios Propios',
-    descripcion: 'Aporta argumentos sencillos para encuentros de matrimonio, vida y pastoral familiar.',
-    defensas: 49,
-    etiqueta: 'Bioetica',
-    icono: 'favorite',
-    color: 'text-primary',
-    fondo: 'bg-primary/10',
-  },
-];
-
-const resumen = [
-  { valor: '124', etiqueta: 'Defensores' },
-  { valor: '2.8k', etiqueta: 'Defensas' },
-];
-
-const filtros = [
-  'Todas las especialidades',
-  'Apologetica Biblica',
-  'Doctrina Catolica',
-  'Historia de la Iglesia',
-];
-
-const ordenes = ['Mas Activos', 'Recientes', 'Mas Formadores'];
+import {
+  apologetas,
+  filtrosApologetas,
+  misiones,
+  ordenesApologetas,
+  resumenApologetas,
+} from '../data/misionesData';
 
 const Apologetas = () => {
   const navigate = useNavigate();
+  const [selectedId, setSelectedId] = useState(apologetas[0]?.id ?? '');
 
   const goToDashboard = () => navigate('/dashboard');
   const goToApologetas = () => navigate('/apologetas');
+  const goToMisiones = () => navigate('/misiones');
   const handleLogout = (e) => {
     e.preventDefault();
     navigate('/login');
   };
+
+  const misionesPorApologeta = useMemo(
+    () =>
+      apologetas.map((apologeta) => ({
+        ...apologeta,
+        misiones: misiones.filter((mision) => mision.apologetas.includes(apologeta.id)),
+      })),
+    [],
+  );
+
+  const toggleCard = (id) => {
+    setSelectedId((current) => (current === id ? '' : id));
+  };
+
+  const renderMissionItem = (mision, compact = false) => (
+    <article
+      key={mision.id}
+      className={`rounded-2xl bg-surface-container-low p-4 ${compact ? '' : 'border border-outline-variant/20'}`}
+    >
+      <div className={`flex ${compact ? 'flex-col gap-3' : 'items-start justify-between gap-4'}`}>
+        <div className="min-w-0">
+          <h4 className="text-base font-semibold text-on-surface">{mision.titulo}</h4>
+          <p className="mt-1 text-xs font-label uppercase tracking-[0.18em] text-secondary">{mision.tipo}</p>
+          <p className="mt-3 text-sm leading-6 text-on-surface-variant">{mision.resumen}</p>
+        </div>
+        <button className="rounded-full border border-primary/20 px-4 py-2 font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+          Ver evidencias
+        </button>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <span className="rounded-full bg-surface-container-lowest px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
+          {mision.lugar}
+        </span>
+        <span className="rounded-full bg-surface-container-lowest px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
+          {mision.fecha}
+        </span>
+        <span className="rounded-full bg-surface-container-lowest px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
+          {mision.evidencia}
+        </span>
+      </div>
+    </article>
+  );
 
   return (
     <div className="min-h-screen bg-surface text-on-background">
@@ -120,7 +88,7 @@ const Apologetas = () => {
           </p>
 
           <section className="mt-6 grid grid-cols-2 gap-4">
-            {resumen.map((item) => (
+            {resumenApologetas.map((item) => (
               <article key={item.etiqueta} className="rounded-2xl bg-surface-container-low px-5 py-4 shadow-[0_8px_24px_rgba(26,28,26,0.05)]">
                 <p className="font-headline text-4xl leading-none text-primary">{item.valor}</p>
                 <p className="mt-2 font-label text-[11px] uppercase tracking-[0.18em] text-on-surface-variant">{item.etiqueta}</p>
@@ -132,21 +100,23 @@ const Apologetas = () => {
             <div className="flex items-center justify-between rounded-2xl bg-surface-container-low px-4 py-4">
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-primary">filter_list</span>
-                <span className="text-sm font-medium text-on-surface">Todas las Especialidades</span>
+                <span className="text-sm font-medium text-on-surface">{filtrosApologetas[0]}</span>
               </div>
               <span className="material-symbols-outlined text-on-surface-variant">expand_more</span>
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-surface-container-low px-4 py-4">
               <span className="text-sm text-on-surface-variant">Ordenar por</span>
               <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                <span>Mas Activos</span>
+                <span>{ordenesApologetas[0]}</span>
                 <span className="material-symbols-outlined text-base">expand_more</span>
               </div>
             </div>
           </section>
 
           <section className="mt-6 space-y-4">
-            {apologetas.map((apologeta) => (
+            {misionesPorApologeta.map((apologeta) => {
+              const isOpen = selectedId === apologeta.id;
+              return (
               <article
                 key={apologeta.nombre}
                 className="rounded-[1.7rem] bg-surface-container-lowest p-5 shadow-[0_10px_28px_rgba(26,28,26,0.06)]"
@@ -164,28 +134,52 @@ const Apologetas = () => {
                   </div>
                 </div>
                 <p className="mt-5 text-sm leading-6 text-on-surface-variant">{apologeta.descripcion}</p>
+                <span className="mt-4 inline-flex rounded-full bg-surface-container-low px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
+                  {apologeta.etiqueta}
+                </span>
                 <div className="mt-5 flex items-center justify-between border-t border-outline-variant/20 pt-4">
                   <div>
-                    <p className="font-headline text-4xl leading-none text-on-surface">{apologeta.defensas}</p>
-                    <p className="mt-1 font-label text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">Defensas realizadas</p>
+                    <p className="font-headline text-4xl leading-none text-on-surface">{apologeta.misiones.length}</p>
+                    <p className="mt-1 font-label text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">Misiones realizadas</p>
                   </div>
-                  <button className="flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant/30 text-primary">
-                    <span className="material-symbols-outlined">arrow_forward</span>
+                  <button
+                    onClick={() => toggleCard(apologeta.id)}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant/30 text-primary"
+                  >
+                    <span className="material-symbols-outlined">{isOpen ? 'expand_less' : 'arrow_forward'}</span>
                   </button>
                 </div>
+                {isOpen && (
+                  <div className="mt-5 space-y-3 border-t border-outline-variant/20 pt-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-headline text-2xl text-on-surface">Misiones realizadas</h3>
+                      <button
+                        onClick={goToMisiones}
+                        className="font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-primary"
+                      >
+                        Ir a modulo
+                      </button>
+                    </div>
+                    {apologeta.misiones.map((mision) => renderMissionItem(mision, true))}
+                  </div>
+                )}
               </article>
-            ))}
+              );
+            })}
           </section>
         </main>
 
-        <button className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_14px_35px_rgba(113,89,24,0.35)]">
+        <button
+          onClick={goToMisiones}
+          className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_14px_35px_rgba(113,89,24,0.35)]"
+        >
           <span className="material-symbols-outlined text-2xl">add</span>
         </button>
 
         <nav className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 items-center justify-between rounded-[2rem] bg-surface-container-low px-6 py-4 shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
           {[
             { label: 'Dashboard', icon: 'dashboard', active: false, action: goToDashboard },
-            { label: 'Misiones', icon: 'menu_book', active: false, action: () => {} },
+            { label: 'Misiones', icon: 'menu_book', active: false, action: goToMisiones },
             { label: 'Apologetas', icon: 'shield', active: true, action: goToApologetas },
             { label: 'Sectas', icon: 'flare', active: false, action: () => {} },
           ].map((item) => (
@@ -221,9 +215,12 @@ const Apologetas = () => {
                 <p className="text-xs font-label uppercase tracking-widest opacity-60">Presbitero</p>
               </div>
             </div>
-            <button className="vatican-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium text-on-primary shadow-lg shadow-primary/10">
+            <button
+              onClick={goToMisiones}
+              className="vatican-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium text-on-primary shadow-lg shadow-primary/10"
+            >
               <span className="material-symbols-outlined text-sm">add</span>
-              <span className="font-label">Nuevo Perfil</span>
+              <span className="font-label">Nueva Mision</span>
             </button>
           </div>
 
@@ -235,7 +232,10 @@ const Apologetas = () => {
               <span className="material-symbols-outlined">dashboard</span>
               <span className="font-label">Dashboard</span>
             </button>
-            <button className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100">
+            <button
+              onClick={goToMisiones}
+              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+            >
               <span className="material-symbols-outlined">explore_nearby</span>
               <span className="font-label">Misiones</span>
             </button>
@@ -296,7 +296,7 @@ const Apologetas = () => {
                 </p>
               </div>
               <div className="flex min-w-[240px] gap-10 border-l border-outline-variant/40 pl-10">
-                {resumen.map((item) => (
+                {resumenApologetas.map((item) => (
                   <div key={item.etiqueta}>
                     <p className="font-headline text-5xl leading-none text-primary">{item.valor}</p>
                     <p className="mt-2 font-label text-xs uppercase tracking-[0.14em] text-on-surface-variant">{item.etiqueta}</p>
@@ -309,21 +309,23 @@ const Apologetas = () => {
               <div className="flex items-center justify-between rounded-[1.4rem] bg-surface-container-low px-6 py-6">
                 <div className="flex items-center gap-4">
                   <span className="material-symbols-outlined text-primary">filter_alt</span>
-                  <span className="text-lg font-medium text-on-surface">{filtros[0]}</span>
+                  <span className="text-lg font-medium text-on-surface">{filtrosApologetas[0]}</span>
                 </div>
                 <span className="material-symbols-outlined text-on-surface-variant">expand_more</span>
               </div>
               <div className="flex items-center justify-between rounded-[1.4rem] bg-surface-container-low px-6 py-6">
                 <span className="text-lg text-on-surface-variant">Ordenar por</span>
                 <div className="flex items-center gap-2 font-semibold text-primary">
-                  <span>{ordenes[0]}</span>
+                  <span>{ordenesApologetas[0]}</span>
                   <span className="material-symbols-outlined text-base">expand_more</span>
                 </div>
               </div>
             </section>
 
-            <section className="mt-10 grid grid-cols-3 gap-6">
-              {apologetas.map((apologeta) => (
+            <section className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
+              {misionesPorApologeta.map((apologeta) => {
+                const isOpen = selectedId === apologeta.id;
+                return (
                 <article
                   key={apologeta.nombre}
                   className="flex min-h-[370px] flex-col rounded-[1.6rem] bg-surface-container-lowest p-6 shadow-[0_12px_35px_rgba(26,28,26,0.05)]"
@@ -348,15 +350,30 @@ const Apologetas = () => {
 
                   <div className="mt-auto flex items-end justify-between border-t border-outline-variant/20 pt-6">
                     <div>
-                      <p className="font-headline text-5xl leading-none text-on-surface">{apologeta.defensas}</p>
-                      <p className="mt-2 font-label text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">Defensas realizadas</p>
+                      <p className="font-headline text-5xl leading-none text-on-surface">{apologeta.misiones.length}</p>
+                      <p className="mt-2 font-label text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">Misiones realizadas</p>
                     </div>
-                    <button className="flex h-10 w-10 items-center justify-center rounded-full text-primary">
-                      <span className="material-symbols-outlined">arrow_forward</span>
+                    <button onClick={() => toggleCard(apologeta.id)} className="flex h-10 w-10 items-center justify-center rounded-full text-primary">
+                      <span className="material-symbols-outlined">{isOpen ? 'expand_less' : 'arrow_forward'}</span>
                     </button>
                   </div>
+                  {isOpen && (
+                    <div className="mt-6 space-y-4 border-t border-outline-variant/20 pt-6">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-headline text-3xl text-on-surface">Misiones realizadas</h4>
+                        <button
+                          onClick={goToMisiones}
+                          className="font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-primary"
+                        >
+                          Gestionar misiones
+                        </button>
+                      </div>
+                      {apologeta.misiones.map((mision) => renderMissionItem(mision))}
+                    </div>
+                  )}
                 </article>
-              ))}
+                );
+              })}
             </section>
 
             <section className="mt-10 flex justify-center">
@@ -373,7 +390,10 @@ const Apologetas = () => {
           </div>
         </main>
 
-        <button className="fixed bottom-8 right-8 z-40 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_18px_40px_rgba(113,89,24,0.35)]">
+        <button
+          onClick={goToMisiones}
+          className="fixed bottom-8 right-8 z-40 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_18px_40px_rgba(113,89,24,0.35)]"
+        >
           <span className="material-symbols-outlined text-3xl">add</span>
         </button>
       </div>

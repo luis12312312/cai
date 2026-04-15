@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Apologetas from './pages/Apologetas';
+import Misiones from './pages/Misiones';
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/apologetas" element={<Apologetas />} />
+        <Route path="/misiones" element={<Misiones />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

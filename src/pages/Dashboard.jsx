@@ -98,6 +98,7 @@ const Dashboard = () => {
   };
 
   const goToDashboard = () => navigate('/dashboard');
+  const goToMisiones = () => navigate('/misiones');
   const goToApologetas = () => navigate('/apologetas');
 
   return (
@@ -219,7 +220,7 @@ const Dashboard = () => {
         <nav className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 items-center justify-between rounded-[2rem] bg-surface-container-low px-6 py-4 shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
           {[
             { label: 'Dashboard', icon: 'dashboard', active: true, action: goToDashboard },
-            { label: 'Misiones', icon: 'menu_book', active: false, action: () => {} },
+            { label: 'Misiones', icon: 'menu_book', active: false, action: goToMisiones },
             { label: 'Apologetas', icon: 'shield', active: false, action: goToApologetas },
             { label: 'Sectas', icon: 'flare', active: false, action: () => {} },
           ].map((item) => (
@@ -269,7 +270,10 @@ const Dashboard = () => {
               <span className="material-symbols-outlined">dashboard</span>
               <span className="font-label">Dashboard</span>
             </button>
-            <button className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100">
+            <button
+              onClick={goToMisiones}
+              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+            >
               <span className="material-symbols-outlined">explore_nearby</span>
               <span className="font-label">Misiones</span>
             </button>
