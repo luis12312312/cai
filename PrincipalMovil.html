@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "outline-variant": "#d0c5b4",
+                "tertiary": "#5b5c5c",
+                "on-error-container": "#93000a",
+                "surface-dim": "#dadad6",
+                "on-primary-fixed": "#251a00",
+                "tertiary-fixed": "#e2e2e2",
+                "on-secondary-container": "#27308a",
+                "inverse-on-surface": "#f1f1ed",
+                "surface-container-high": "#e8e8e4",
+                "surface-variant": "#e2e3df",
+                "secondary-fixed": "#e0e0ff",
+                "tertiary-container": "#737575",
+                "on-tertiary-fixed": "#1a1c1c",
+                "on-secondary-fixed-variant": "#343d96",
+                "primary-fixed-dim": "#e4c377",
+                "on-secondary": "#ffffff",
+                "inverse-primary": "#e4c377",
+                "outline": "#7e7667",
+                "secondary": "#4c56af",
+                "primary-container": "#8c712f",
+                "secondary-container": "#959efd",
+                "surface-container-highest": "#e2e3df",
+                "surface-tint": "#745b1a",
+                "on-surface-variant": "#4d4639",
+                "surface": "#faf9f5",
+                "error": "#ba1a1a",
+                "on-tertiary": "#ffffff",
+                "on-primary": "#ffffff",
+                "error-container": "#ffdad6",
+                "secondary-fixed-dim": "#bdc2ff",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-fixed-variant": "#454747",
+                "surface-container-low": "#f4f4f0",
+                "on-secondary-fixed": "#000767",
+                "on-primary-fixed-variant": "#5a4302",
+                "surface-bright": "#faf9f5",
+                "surface-container": "#eeeeea",
+                "tertiary-fixed-dim": "#c6c6c6",
+                "primary-fixed": "#ffdf99",
+                "on-tertiary-container": "#fdfcfc",
+                "background": "#faf9f5",
+                "primary": "#715918",
+                "inverse-surface": "#2f312e",
+                "on-error": "#ffffff",
+                "on-surface": "#1a1c1a",
+                "on-background": "#1a1c1a",
+                "on-primary-container": "#fffbff"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "fontFamily": {
+                "headline": ["Noto Serif"],
+                "body": ["Plus Jakarta Sans"],
+                "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .arched-frame {
+            border-top-left-radius: 2rem;
+            border-top-right-radius: 2rem;
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+        }
+        .vatican-gradient {
+            background: linear-gradient(135deg, #715918 0%, #8c712f 100%);
+        }
+        .ghost-border-bottom {
+            border-bottom: 1px solid rgba(208, 197, 180, 0.3);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed-dim">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 rounded-b-xl bg-stone-50/80 dark:bg-stone-950/80 backdrop-blur-lg border-b border-stone-200/20 dark:border-stone-800/20 shadow-sm shadow-stone-200/50 dark:shadow-none flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="relative w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border border-outline-variant/20">
+<img alt="Ecclesiastical Rank Insignia" class="w-full h-full object-cover" data-alt="Dignified portrait of an elder scholar in ecclesiastical vestments with gold embroidery, soft cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxY-PsybyPMNrpUDTMSY7aUFvCqx_Zz1b4PA4Wplg5VxAzFVjBb-Ht4BTmEnHiMj-prCMUrJ5x8xZKB3F3NR_zH7zdDVC0uww1ZFoyUXxzKvi7t8iW05MkglcXDcVCf6zXeQH15L2tp0rdrPnVcXpKwyGN5ZCyDxLeOsdNFfy802K_GB35SBQQoAcdJxRlZ5j6sIOvDHa6bmOYmCcvSHzHvJ17OyojxGx7an_Y0oZ-NmVyNu-FnGHW2zgLPwezBuAKbVKMewFH"/>
+</div>
+<h1 class="font-serif text-xl font-bold text-amber-800 dark:text-amber-500 tracking-tight">Cruzada Apologética</h1>
+</div>
+<button class="text-amber-800 dark:text-amber-500 transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<main class="pt-24 pb-32 px-6">
+<!-- Hero Section Asymmetry -->
+<section class="mb-10">
+<p class="font-label text-primary uppercase tracking-[0.2em] text-[10px] mb-2">Pax et Bonum</p>
+<h2 class="font-headline text-4xl text-on-surface leading-tight mb-4">Bienvenido al <br/><span class="text-primary italic">Santuario Digital</span></h2>
+<div class="h-1 w-12 bg-primary rounded-full"></div>
+</section>
+<!-- Bento Grid Metrics -->
+<div class="grid grid-cols-2 gap-4 mb-8">
+<!-- Large Metric Card -->
+<div class="col-span-2 bg-surface-container-low arched-frame p-6 flex flex-col justify-between min-h-[160px] relative overflow-hidden group">
+<div class="z-10">
+<span class="material-symbols-outlined text-primary mb-4" data-icon="auto_stories">auto_stories</span>
+<h3 class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-semibold">Misiones Activas</h3>
+<p class="font-headline text-5xl text-primary mt-1">12</p>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[120px]" data-icon="church">church</span>
+</div>
+</div>
+<!-- Small Metric 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-5 shadow-sm">
+<span class="material-symbols-outlined text-secondary mb-2" data-icon="history_edu">history_edu</span>
+<p class="font-headline text-2xl text-on-surface">148</p>
+<h3 class="font-label text-[10px] uppercase tracking-wider text-tertiary">Apologetas</h3>
+</div>
+<!-- Small Metric 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-5 shadow-sm">
+<span class="material-symbols-outlined text-error mb-2" data-icon="gavel">gavel</span>
+<p class="font-headline text-2xl text-error">03</p>
+<h3 class="font-label text-[10px] uppercase tracking-wider text-tertiary">Alertas Sectas</h3>
+</div>
+</div>
+<!-- Recent Activity Section -->
+<section class="mb-8">
+<div class="flex justify-between items-end mb-6">
+<h3 class="font-headline text-2xl text-on-surface">Actividad Reciente</h3>
+<a class="font-label text-xs text-primary font-bold tracking-wider hover:underline underline-offset-4" href="#">VER TODO</a>
+</div>
+<div class="space-y-4">
+<!-- Activity Item 1 -->
+<div class="flex items-start gap-4 p-4 bg-surface-container-low/50 rounded-xl ghost-border-bottom">
+<div class="w-10 h-10 rounded-lg vatican-gradient flex items-center justify-center text-on-primary shrink-0">
+<span class="material-symbols-outlined text-sm" data-icon="shield">shield</span>
+</div>
+<div>
+<p class="font-body text-sm font-semibold text-on-surface">Nueva Tesis Defensiva</p>
+<p class="font-body text-xs text-on-surface-variant mt-1">Refutación sobre el neo-gnosticismo contemporáneo publicada por el P. Julián.</p>
+<p class="font-label text-[10px] text-tertiary mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" data-icon="schedule">schedule</span> hace 2 horas
+                        </p>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="flex items-start gap-4 p-4 bg-surface-container-low/50 rounded-xl ghost-border-bottom">
+<div class="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-on-secondary shrink-0">
+<span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+</div>
+<div>
+<p class="font-body text-sm font-semibold text-on-surface">Misión Itinerante Iniciada</p>
+<p class="font-body text-xs text-on-surface-variant mt-1">El equipo Alfa ha llegado a la Diócesis de San Juan para la Cruzada de Verano.</p>
+<p class="font-label text-[10px] text-tertiary mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" data-icon="schedule">schedule</span> hace 5 horas
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Resource / Call to Action -->
+<section class="relative h-48 rounded-xl overflow-hidden shadow-xl mb-6 group">
+<img alt="Biblioteca Teológica" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Interior of an ancient majestic library with golden sunbeams filtering through dust motes onto leather bound books, moody atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcBzTciD6sMJYlsZO3Cx6S0swfWeh94_q1WPDMggmIPcMN46YqG3N3Xqd_Te87EfdylfhQPT-aqw6AuPE7cSv_wZw4ctOSofLsDHkLDfP-qnH9_BQtuzfLias8ezVRPf95Tg30-n-bxQvojqB6FTg4DXD0zUYwAOdZWdBx_WTnxZyYDJKQLsG_kT_lAPKu_SLo85ubVq-BCZOYRVRl5QupY8DhGS3JzNLWZcu1kYSp90mq8bpWRFqNl_GVYnaTMxZoeizRwdfZ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+<div class="absolute bottom-4 left-4 right-4">
+<h4 class="text-white font-headline text-lg">Biblioteca de Doctrina</h4>
+<p class="text-white/80 text-xs font-body mb-3">Accede a los manuscritos sagrados de la apologética clásica.</p>
+<button class="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-label uppercase tracking-widest px-4 py-2 rounded transition-colors hover:bg-white/20">
+                    Consultar Archivos
+                </button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 rounded-t-[2rem] border-t border-stone-200/30 dark:border-stone-800/30 bg-stone-50/90 dark:bg-stone-950/90 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)] flex justify-around items-center px-4 pt-3 pb-6">
+<!-- Dashboard Active -->
+<a class="flex flex-col items-center justify-center text-amber-800 dark:text-amber-500 bg-amber-50/50 dark:bg-amber-900/20 rounded-2xl px-4 py-1 smooth-spring-transition active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 hover:text-amber-700 dark:hover:text-amber-400 smooth-spring-transition active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium mt-1">Misiones</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 hover:text-amber-700 dark:hover:text-amber-400 smooth-spring-transition active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium mt-1">Apologetas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 hover:text-amber-700 dark:hover:text-amber-400 smooth-spring-transition active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium mt-1">Sectas</span>
+</a>
+</nav>
+</body></html>

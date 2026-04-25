@@ -78,14 +78,58 @@ const buildMissionEvidenceDetails = (mision, apologetaNombre) => {
   };
 };
 
+const initialCertificates = [
+  {
+    id: 'cert-ap-001',
+    identifier: 'AP-001',
+    normalizedIdentifier: 'ap-001',
+    name: 'Certificado de Formacion Inicial',
+    fileName: 'formacion-inicial.pdf',
+    sizeLabel: '420 KB',
+    uploadedAt: '25/04/2026',
+    status: 'Vigente',
+  },
+  {
+    id: 'cert-ap-002',
+    identifier: 'AP-002',
+    normalizedIdentifier: 'ap-002',
+    name: 'Constancia de Actualizacion Doctrinal',
+    fileName: 'actualizacion-doctrinal.pdf',
+    sizeLabel: '368 KB',
+    uploadedAt: '19/04/2026',
+    status: 'Vigente',
+  },
+];
+
+const formatCertificateDate = () => {
+  const today = new Date();
+  const day = `${today.getDate()}`.padStart(2, '0');
+  const month = `${today.getMonth() + 1}`.padStart(2, '0');
+  const year = today.getFullYear();
+
+  return `${day}/${month}/${year}`;
+};
+
 const Apologetas = () => {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(apologetas[0]?.id ?? '');
   const [selectedMission, setSelectedMission] = useState(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [certificates, setCertificates] = useState(initialCertificates);
+  const [certificateForm, setCertificateForm] = useState({
+    identifier: '',
+    name: '',
+    file: null,
+  });
+  const [certificateFeedback, setCertificateFeedback] = useState({
+    type: '',
+    message: '',
+  });
+  const [certificateFileInputKey, setCertificateFileInputKey] = useState(0);
 
   const goToDashboard = () => navigate('/dashboard');
   const goToApologetas = () => navigate('/apologetas');
+  const goToCertificados = () => navigate('/certificados');
   const goToMisiones = () => navigate('/misiones');
   const goToSectas = () => navigate('/sectas');
   const handleLogout = (e) => {
@@ -176,6 +220,228 @@ const Apologetas = () => {
     </article>
   );
 
+
+  const handleCertificateFieldChange = (field) => (event) => {
+    const value = field === 'file' ? event.target.files?.[0] ?? null : event.target.value;
+
+    setCertificateForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+
+    if (certificateFeedback.message) {
+      setCertificateFeedback({ type: '', message: '' });
+    }
+  };
+
+  const handleCertificateSubmit = (event) => {
+    event.preventDefault();
+
+    const identifier = certificateForm.identifier.trim();
+    const name = certificateForm.name.trim();
+    const file = certificateForm.file;
+
+    if (!identifier || !name || !file) {
+      setCertificateFeedback({
+        type: 'error',
+        message: 'Completa el identificador, el nombre y selecciona el archivo del certificado.',
+      });
+      return;
+    }
+
+    const normalizedIdentifier = identifier.toLowerCase();
+    const alreadyExists = certificates.some(
+      (certificate) => certificate.normalizedIdentifier === normalizedIdentifier,
+    );
+
+    if (alreadyExists) {
+      setCertificateFeedback({
+        type: 'error',
+        message: 'El identificador ingresado ya existe. Usa uno diferente para registrar el certificado.',
+      });
+      return;
+    }
+
+    const sizeInKb = Math.max(1, Math.round(file.size / 1024));
+
+    setCertificates((current) => [
+      {
+        id: `${normalizedIdentifier}-${Date.now()}`,
+        identifier,
+        normalizedIdentifier,
+        name,
+        fileName: file.name,
+        sizeLabel: `${sizeInKb} KB`,
+        uploadedAt: formatCertificateDate(),
+        status: 'Cargado',
+      },
+      ...current,
+    ]);
+
+    setCertificateForm({
+      identifier: '',
+      name: '',
+      file: null,
+    });
+    setCertificateFeedback({
+      type: 'success',
+      message: `Certificado ${identifier} cargado correctamente.`,
+    });
+    setCertificateFileInputKey((current) => current + 1);
+  };
+
+  const renderCertificatesSection = (isDesktop = false) => (
+    <section
+      className={`${isDesktop ? 'mt-10 rounded-[1.8rem] bg-surface-container-low p-8 shadow-[0_12px_35px_rgba(26,28,26,0.05)]' : 'mt-6 rounded-[1.8rem] bg-surface-container-low p-5 shadow-[0_10px_28px_rgba(26,28,26,0.06)]'}`}
+    >
+      <div className={`flex ${isDesktop ? 'items-end justify-between gap-6' : 'flex-col gap-4'}`}>
+        <div className="max-w-2xl">
+          <p className="font-label text-[10px] uppercase tracking-[0.24em] text-secondary">Certificados</p>
+          <h2 className={`${isDesktop ? 'mt-3 font-headline text-4xl text-on-surface' : 'mt-2 font-headline text-3xl text-on-surface'}`}>
+            Carga y gestiona certificados
+          </h2>
+          <p className={`${isDesktop ? 'mt-3 text-base leading-7 text-on-surface-variant' : 'mt-2 text-sm leading-6 text-on-surface-variant'}`}>
+            Registra cada certificado con un identificador unico, un nombre asociado y el archivo que deseas conservar.
+          </p>
+        </div>
+        <div className={`grid ${isDesktop ? 'grid-cols-2 gap-4' : 'grid-cols-2 gap-3'}`}>
+          <article className="rounded-2xl bg-surface-container-lowest px-4 py-4">
+            <p className="font-headline text-3xl leading-none text-primary">{certificates.length}</p>
+            <p className="mt-2 font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
+              Certificados registrados
+            </p>
+          </article>
+          <article className="rounded-2xl bg-surface-container-lowest px-4 py-4">
+            <p className="font-headline text-3xl leading-none text-primary">
+              {certificates.filter((certificate) => certificate.status === 'Vigente').length}
+            </p>
+            <p className="mt-2 font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Vigentes</p>
+          </article>
+        </div>
+      </div>
+
+      <div className={`mt-6 grid grid-cols-1 gap-5 ${isDesktop ? 'xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)]' : ''}`}>
+        <article className="rounded-[1.5rem] bg-surface-container-lowest p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <span className="material-symbols-outlined">verified</span>
+            </div>
+            <div>
+              <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Nuevo certificado</p>
+              <p className="mt-1 text-sm text-on-surface-variant">Completa los datos para agregar un nuevo registro.</p>
+            </div>
+          </div>
+
+          <form className="mt-5 space-y-4" onSubmit={handleCertificateSubmit}>
+            <label className="block">
+              <span className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
+                Identificador unico
+              </span>
+              <input
+                className="mt-2 w-full rounded-2xl border border-outline-variant/20 bg-surface px-4 py-3 text-sm text-on-surface outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
+                onChange={handleCertificateFieldChange('identifier')}
+                placeholder="Ej. AP-003"
+                type="text"
+                value={certificateForm.identifier}
+              />
+            </label>
+
+            <label className="block">
+              <span className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
+                Nombre del certificado
+              </span>
+              <input
+                className="mt-2 w-full rounded-2xl border border-outline-variant/20 bg-surface px-4 py-3 text-sm text-on-surface outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
+                onChange={handleCertificateFieldChange('name')}
+                placeholder="Ej. Certificado de Apologetica Fundamental"
+                type="text"
+                value={certificateForm.name}
+              />
+            </label>
+
+            <label className="block">
+              <span className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Archivo</span>
+              <input
+                key={certificateFileInputKey}
+                className="mt-2 block w-full rounded-2xl border border-dashed border-outline-variant/30 bg-surface px-4 py-3 text-sm text-on-surface file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:font-label file:text-[10px] file:uppercase file:tracking-[0.16em] file:text-primary"
+                onChange={handleCertificateFieldChange('file')}
+                type="file"
+              />
+              <p className="mt-2 text-xs text-on-surface-variant">
+                {certificateForm.file ? `Archivo seleccionado: ${certificateForm.file.name}` : 'Selecciona un archivo PDF o imagen del certificado.'}
+              </p>
+            </label>
+
+            {certificateFeedback.message ? (
+              <div
+                className={`rounded-2xl px-4 py-3 text-sm ${
+                  certificateFeedback.type === 'error'
+                    ? 'bg-error/10 text-error'
+                    : 'bg-[#2e7d32]/10 text-[#2e7d32]'
+                }`}
+              >
+                {certificateFeedback.message}
+              </div>
+            ) : null}
+
+            <button
+              className="w-full rounded-2xl bg-primary px-4 py-3 font-label text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_12px_24px_rgba(113,89,24,0.24)] transition hover:opacity-95"
+              type="submit"
+            >
+              Cargar certificado
+            </button>
+          </form>
+        </article>
+
+        <article className="rounded-[1.5rem] bg-surface-container-lowest p-5">
+          <div className={`flex ${isDesktop ? 'items-center justify-between' : 'flex-col gap-2'}`}>
+            <div>
+              <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Registros cargados</p>
+              <h3 className="mt-2 font-headline text-2xl text-on-surface">Listado de certificados</h3>
+            </div>
+            <span className="rounded-full bg-primary/10 px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
+              {certificates.length} activos
+            </span>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {certificates.map((certificate) => (
+              <article
+                key={certificate.id}
+                className={`rounded-[1.4rem] border border-outline-variant/15 bg-surface px-4 py-4 ${
+                  isDesktop ? 'flex items-center justify-between gap-4' : 'space-y-4'
+                }`}
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-primary/10 px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
+                      {certificate.identifier}
+                    </span>
+                    <span className="rounded-full bg-surface-container-low px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
+                      {certificate.status}
+                    </span>
+                  </div>
+                  <h4 className="mt-3 text-base font-semibold text-on-surface">{certificate.name}</h4>
+                  <p className="mt-1 text-sm text-on-surface-variant">{certificate.fileName}</p>
+                </div>
+
+                <div className={`${isDesktop ? 'min-w-[210px] text-right' : 'grid grid-cols-2 gap-3'}`}>
+                  <div>
+                    <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Fecha</p>
+                    <p className="mt-2 text-sm font-semibold text-on-surface">{certificate.uploadedAt}</p>
+                  </div>
+                  <div>
+                    <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Tamano</p>
+                    <p className="mt-2 text-sm font-semibold text-on-surface">{certificate.sizeLabel}</p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </article>
+      </div>
+    </section>
+  );
   const renderMissionDetail = () => {
     if (!selectedMission) {
       return null;
@@ -475,19 +741,25 @@ const Apologetas = () => {
           <span className="material-symbols-outlined text-2xl">add</span>
         </button>
 
-        <nav className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 items-center justify-between rounded-[2rem] bg-surface-container-low px-6 py-4 shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
-          {[
-            { label: 'Dashboard', icon: 'dashboard', active: false, action: goToDashboard },
-            { label: 'Misiones', icon: 'menu_book', active: false, action: goToMisiones },
-            { label: 'Apologetas', icon: 'shield', active: true, action: goToApologetas },
-            { label: 'Sectas', icon: 'flare', active: false, action: goToSectas },
-          ].map((item) => (
-            <button key={item.label} onClick={item.action} className="flex flex-col items-center gap-1">
+        <nav className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 overflow-hidden rounded-[2rem] bg-surface-container-low shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
+          <div
+            className="flex items-center justify-start gap-6 overflow-x-auto px-6 py-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <style>{`.flex::-webkit-scrollbar { display: none; }`}</style>
+            {[
+              { label: 'Inicio', icon: 'dashboard', active: false, action: goToDashboard },
+              { label: 'Misiones', icon: 'menu_book', active: false, action: goToMisiones },
+              { label: 'Apolog.', icon: 'shield', active: true, action: goToApologetas },
+              { label: 'Certif.', icon: 'workspace_premium', active: false, action: goToCertificados },
+              { label: 'Sectas', icon: 'flare', active: false, action: goToSectas },
+            ].map((item) => (
+              <button key={item.label} onClick={item.action} className="flex min-w-[4rem] shrink-0 flex-col items-center gap-1">
               <span className={`material-symbols-outlined text-xl ${item.active ? 'text-primary' : 'text-on-surface-variant/50'}`}>
                 {item.icon}
               </span>
               <span
-                className={`font-label text-[10px] uppercase tracking-[0.16em] ${
+                className={`font-label text-[9px] uppercase tracking-[0.12em] ${
                   item.active ? 'text-primary' : 'text-on-surface-variant/60'
                 }`}
               >
@@ -495,6 +767,7 @@ const Apologetas = () => {
               </span>
             </button>
           ))}
+          </div>
         </nav>
       </div>
 
@@ -541,6 +814,13 @@ const Apologetas = () => {
             <button className="flex w-full items-center gap-4 rounded-l-full bg-[#715918]/5 px-4 py-3 text-left font-bold text-[#715918] transition-all duration-300">
               <span className="material-symbols-outlined">shield</span>
               <span className="font-label">Apologetas</span>
+            </button>
+            <button
+              onClick={goToCertificados}
+              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+            >
+              <span className="material-symbols-outlined">workspace_premium</span>
+              <span className="font-label">Certificados</span>
             </button>
             <button
               onClick={goToSectas}

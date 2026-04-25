@@ -8,7 +8,6 @@ const initialForm = {
   lugar: '',
   fecha: '',
   evidencia: 'Fotos',
-  apologetas: [],
 };
 
 const buildMissionMediaSamples = (mision) => {
@@ -91,6 +90,7 @@ const Misiones = () => {
 
   const goToDashboard = () => navigate('/dashboard');
   const goToApologetas = () => navigate('/apologetas');
+  const goToCertificados = () => navigate('/certificados');
   const goToMisiones = () => navigate('/misiones');
   const goToSectas = () => navigate('/sectas');
   const handleLogout = (e) => {
@@ -114,20 +114,27 @@ const Misiones = () => {
     setForm((current) => ({ ...current, [name]: value }));
   };
 
-  const toggleApologeta = (id) => {
-    setForm((current) => ({
-      ...current,
-      apologetas: current.apologetas.includes(id)
-        ? current.apologetas.filter((item) => item !== id)
-        : [...current.apologetas, id],
-    }));
+  const autoAssignMission = (misionId) => {
+    const currentUserId = apologetas[0]?.id; // Simulacion de usuario logueado (Padre Luis Toro)
+    if (!currentUserId) return;
+
+    setMisionesLocales((current) =>
+      current.map((m) => {
+        if (m.id === misionId && !m.apologetas.includes(currentUserId)) {
+          return { ...m, apologetas: [...m.apologetas, currentUserId] };
+        }
+        return m;
+      }),
+    );
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!form.titulo.trim() || !form.lugar.trim() || !form.fecha.trim() || form.apologetas.length === 0) {
+    if (!form.titulo.trim() || !form.lugar.trim() || !form.fecha.trim()) {
       return;
     }
+
+    const currentUserId = apologetas[0]?.id; // Autoasignar al creador por defecto
 
     const nuevaMision = {
       id: `mision-local-${Date.now()}`,
@@ -137,7 +144,7 @@ const Misiones = () => {
       fecha: form.fecha.trim(),
       evidencia: form.evidencia,
       resumen: `Mision creada para ${form.lugar.trim()} con enfoque en ${form.tipo.toLowerCase()}.`,
-      apologetas: form.apologetas,
+      apologetas: currentUserId ? [currentUserId] : [],
     };
 
     setMisionesLocales((current) => [nuevaMision, ...current]);
@@ -212,13 +219,24 @@ const Misiones = () => {
       </div>
 
       <div className="mt-5 flex items-center justify-between border-t border-outline-variant/20 pt-4">
-        <button
-          type="button"
-          onClick={() => openMissionDetail(mision)}
-          className="rounded-full border border-primary/20 px-4 py-2 font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/5"
-        >
-          Ver evidencias
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => openMissionDetail(mision)}
+            className="rounded-full border border-primary/20 px-4 py-2 font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/5"
+          >
+            Ver evidencias
+          </button>
+          {!mision.apologetas.includes(apologetas[0]?.id) && (
+            <button
+              type="button"
+              onClick={() => autoAssignMission(mision.id)}
+              className="rounded-full bg-primary px-4 py-2 font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:opacity-90"
+            >
+              Autoasignarme
+            </button>
+          )}
+        </div>
         <button type="button" onClick={() => openMissionDetail(mision)} className="text-primary">
           <span className="material-symbols-outlined">arrow_forward</span>
         </button>
@@ -478,34 +496,6 @@ const Misiones = () => {
             />
           </label>
         </div>
-
-        <div>
-          <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Asignar apologetas</p>
-          <div className="mt-3 grid grid-cols-1 gap-3">
-            {apologetas.map((apologeta) => {
-              const isChecked = form.apologetas.includes(apologeta.id);
-              return (
-                <label
-                  key={apologeta.id}
-                  className={`flex cursor-pointer items-center justify-between rounded-2xl px-4 py-3 ${
-                    isChecked ? 'bg-primary/10 text-primary' : 'bg-surface-container-lowest text-on-surface'
-                  }`}
-                >
-                  <div>
-                    <p className="text-sm font-semibold">{apologeta.nombre}</p>
-                    <p className="text-xs text-on-surface-variant">{apologeta.especialidad}</p>
-                  </div>
-                  <input
-                    checked={isChecked}
-                    onChange={() => toggleApologeta(apologeta.id)}
-                    className="h-4 w-4 rounded border-primary/30 text-primary focus:ring-primary/20"
-                    type="checkbox"
-                  />
-                </label>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       <button
@@ -583,19 +573,25 @@ const Misiones = () => {
           </section>
         </main>
 
-        <nav className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 items-center justify-between rounded-[2rem] bg-surface-container-low px-6 py-4 shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
-          {[
-            { label: 'Dashboard', icon: 'dashboard', active: false, action: goToDashboard },
-            { label: 'Misiones', icon: 'menu_book', active: true, action: goToMisiones },
-            { label: 'Apologetas', icon: 'shield', active: false, action: goToApologetas },
-            { label: 'Sectas', icon: 'flare', active: false, action: goToSectas },
-          ].map((item) => (
-            <button key={item.label} onClick={item.action} className="flex flex-col items-center gap-1">
+        <nav className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 overflow-hidden rounded-[2rem] bg-surface-container-low shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
+          <div
+            className="flex items-center justify-start gap-6 overflow-x-auto px-6 py-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <style>{`.flex::-webkit-scrollbar { display: none; }`}</style>
+            {[
+              { label: 'Inicio', icon: 'dashboard', active: false, action: goToDashboard },
+              { label: 'Misiones', icon: 'menu_book', active: true, action: goToMisiones },
+              { label: 'Apolog.', icon: 'shield', active: false, action: goToApologetas },
+              { label: 'Certif.', icon: 'workspace_premium', active: false, action: goToCertificados },
+              { label: 'Sectas', icon: 'flare', active: false, action: goToSectas },
+            ].map((item) => (
+              <button key={item.label} onClick={item.action} className="flex min-w-[4rem] shrink-0 flex-col items-center gap-1">
               <span className={`material-symbols-outlined text-xl ${item.active ? 'text-primary' : 'text-on-surface-variant/50'}`}>
                 {item.icon}
               </span>
               <span
-                className={`font-label text-[10px] uppercase tracking-[0.16em] ${
+                className={`font-label text-[9px] uppercase tracking-[0.12em] ${
                   item.active ? 'text-primary' : 'text-on-surface-variant/60'
                 }`}
               >
@@ -603,6 +599,7 @@ const Misiones = () => {
               </span>
             </button>
           ))}
+          </div>
         </nav>
       </div>
 
@@ -649,6 +646,13 @@ const Misiones = () => {
             >
               <span className="material-symbols-outlined">shield</span>
               <span className="font-label">Apologetas</span>
+            </button>
+            <button
+              onClick={goToCertificados}
+              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+            >
+              <span className="material-symbols-outlined">workspace_premium</span>
+              <span className="font-label">Certificados</span>
             </button>
             <button
               onClick={goToSectas}

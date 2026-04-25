@@ -123,7 +123,13 @@ const Login = () => {
 
               <div className="mt-6 text-center">
                 <span className="font-label text-[11px] text-outline uppercase tracking-widest">¿No tiene una cuenta? </span>
-                <a className="font-label text-[11px] text-primary font-bold hover:text-primary/80 transition-colors duration-300 underline decoration-primary/20 underline-offset-4 uppercase tracking-widest" href="#">Registrarse</a>
+                <button 
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="font-label text-[11px] text-primary font-bold hover:text-primary/80 transition-colors duration-300 underline decoration-primary/20 underline-offset-4 uppercase tracking-widest"
+                >
+                  Registrarse
+                </button>
               </div>
             </form>
 

@@ -8,6 +8,7 @@ const Sectas = () => {
   const goToDashboard = () => navigate('/dashboard');
   const goToMisiones = () => navigate('/misiones');
   const goToApologetas = () => navigate('/apologetas');
+  const goToCertificados = () => navigate('/certificados');
   const goToSectas = () => navigate('/sectas');
   const handleLogout = (e) => {
     e.preventDefault();
@@ -165,19 +166,25 @@ const Sectas = () => {
           </section>
         </main>
 
-        <nav className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 items-center justify-between rounded-[2rem] bg-surface-container-low px-6 py-4 shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
-          {[
-            { label: 'Dashboard', icon: 'dashboard', active: false, action: goToDashboard },
-            { label: 'Misiones', icon: 'menu_book', active: false, action: goToMisiones },
-            { label: 'Apologetas', icon: 'shield', active: false, action: goToApologetas },
-            { label: 'Sectas', icon: 'flare', active: true, action: goToSectas },
-          ].map((item) => (
-            <button key={item.label} onClick={item.action} className="flex flex-col items-center gap-1">
+        <nav className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 overflow-hidden rounded-[2rem] bg-surface-container-low shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
+          <div
+            className="flex items-center justify-start gap-6 overflow-x-auto px-6 py-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <style>{`.flex::-webkit-scrollbar { display: none; }`}</style>
+            {[
+              { label: 'Inicio', icon: 'dashboard', active: false, action: goToDashboard },
+              { label: 'Misiones', icon: 'menu_book', active: false, action: goToMisiones },
+              { label: 'Apolog.', icon: 'shield', active: false, action: goToApologetas },
+              { label: 'Certif.', icon: 'workspace_premium', active: false, action: goToCertificados },
+              { label: 'Sectas', icon: 'flare', active: true, action: goToSectas },
+            ].map((item) => (
+              <button key={item.label} onClick={item.action} className="flex min-w-[4rem] shrink-0 flex-col items-center gap-1">
               <span className={`material-symbols-outlined text-xl ${item.active ? 'text-primary' : 'text-on-surface-variant/50'}`}>
                 {item.icon}
               </span>
               <span
-                className={`font-label text-[10px] uppercase tracking-[0.16em] ${
+                className={`font-label text-[9px] uppercase tracking-[0.12em] ${
                   item.active ? 'text-primary' : 'text-on-surface-variant/60'
                 }`}
               >
@@ -185,6 +192,7 @@ const Sectas = () => {
               </span>
             </button>
           ))}
+          </div>
         </nav>
       </div>
 
@@ -234,6 +242,13 @@ const Sectas = () => {
             >
               <span className="material-symbols-outlined">shield</span>
               <span className="font-label">Apologetas</span>
+            </button>
+            <button
+              onClick={goToCertificados}
+              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+            >
+              <span className="material-symbols-outlined">workspace_premium</span>
+              <span className="font-label">Certificados</span>
             </button>
             <button
               onClick={goToSectas}
