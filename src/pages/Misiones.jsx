@@ -110,6 +110,8 @@ const Misiones = () => {
     [misionesLocales],
   );
 
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
   const onInputChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
@@ -524,7 +526,7 @@ const Misiones = () => {
             </div>
             <button
               onClick={goToDashboard}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/10 bg-surface-container-low text-primary"
+              className={`flex h-10 w-10 items-center justify-center rounded-full border border-primary/10 bg-surface-container-low text-primary ${user.role === 'SOLDADO_ACTIVE' ? 'invisible' : ''}`}
             >
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
@@ -567,7 +569,9 @@ const Misiones = () => {
             </article>
           </section>
 
-          <section className="mt-6">{renderForm(true)}</section>
+          {user.role !== 'SOLDADO_ACTIVE' && (
+            <section className="mt-6">{renderForm(true)}</section>
+          )}
 
           <section className="mt-6 space-y-4">
             {misionesEnriquecidas.map((mision) => renderMissionCard(mision))}
@@ -581,12 +585,14 @@ const Misiones = () => {
           >
             <style>{`.flex::-webkit-scrollbar { display: none; }`}</style>
             {[
-              { label: 'Inicio', icon: 'dashboard', active: false, action: goToDashboard },
+              { label: 'Inicio', icon: 'dashboard', active: false, action: goToDashboard, hidden: user.role === 'SOLDADO_ACTIVE' },
               { label: 'Misiones', icon: 'menu_book', active: true, action: goToMisiones },
-              { label: 'Apolog.', icon: 'shield', active: false, action: goToApologetas },
-              { label: 'Certif.', icon: 'workspace_premium', active: false, action: goToCertificados },
+              { label: 'Apolog.', icon: 'shield', active: false, action: goToApologetas, hidden: user.role === 'SOLDADO_ACTIVE' },
+              { label: 'Certif.', icon: 'workspace_premium', active: false, action: goToCertificados, hidden: user.role === 'SOLDADO_ACTIVE' },
               { label: 'Sectas', icon: 'flare', active: false, action: goToSectas },
-            ].map((item) => (
+            ]
+              .filter((item) => !item.hidden)
+              .map((item) => (
               <button key={item.label} onClick={item.action} className="flex min-w-[4rem] shrink-0 flex-col items-center gap-1">
               <span className={`material-symbols-outlined text-xl ${item.active ? 'text-primary' : 'text-on-surface-variant/50'}`}>
                 {item.icon}
@@ -620,20 +626,25 @@ const Misiones = () => {
                 <p className="text-xs font-label uppercase tracking-widest opacity-60">Sacerdote</p>
               </div>
             </div>
-            <button className="vatican-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium text-on-primary shadow-lg shadow-primary/10">
+            <button 
+              className="vatican-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium text-on-primary shadow-lg shadow-primary/10"
+              style={{ display: user.role === 'SOLDADO_ACTIVE' ? 'none' : 'flex' }}
+            >
               <span className="material-symbols-outlined text-sm">add</span>
               <span className="font-label">Nueva Mision</span>
             </button>
           </div>
 
           <nav className="flex-1 space-y-2">
-            <button
-              onClick={goToDashboard}
-              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-            >
-              <span className="material-symbols-outlined">dashboard</span>
-              <span className="font-label">Dashboard</span>
-            </button>
+            {user.role !== 'SOLDADO_ACTIVE' && (
+              <button
+                onClick={goToDashboard}
+                className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+              >
+                <span className="material-symbols-outlined">dashboard</span>
+                <span className="font-label">Dashboard</span>
+              </button>
+            )}
             <button
               onClick={goToMisiones}
               className="flex w-full items-center gap-4 rounded-l-full bg-[#715918]/5 px-4 py-3 text-left font-bold text-[#715918] transition-all duration-300"
@@ -641,20 +652,24 @@ const Misiones = () => {
               <span className="material-symbols-outlined">explore_nearby</span>
               <span className="font-label">Misiones</span>
             </button>
-            <button
-              onClick={goToApologetas}
-              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-            >
-              <span className="material-symbols-outlined">shield</span>
-              <span className="font-label">Apologetas</span>
-            </button>
-            <button
-              onClick={goToCertificados}
-              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-            >
-              <span className="material-symbols-outlined">workspace_premium</span>
-              <span className="font-label">Certificados</span>
-            </button>
+            {user.role !== 'SOLDADO_ACTIVE' && (
+              <>
+                <button
+                  onClick={goToApologetas}
+                  className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+                >
+                  <span className="material-symbols-outlined">shield</span>
+                  <span className="font-label">Apologetas</span>
+                </button>
+                <button
+                  onClick={goToCertificados}
+                  className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
+                >
+                  <span className="material-symbols-outlined">workspace_premium</span>
+                  <span className="font-label">Certificados</span>
+                </button>
+              </>
+            )}
             <button
               onClick={goToSectas}
               className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
@@ -722,9 +737,11 @@ const Misiones = () => {
               </div>
             </section>
 
-            <section className="mt-10 grid grid-cols-[360px_minmax(0,1fr)] gap-8">
-              <div>{renderForm()}</div>
-              <div className="space-y-6">
+            <section className="mt-10 grid grid-cols-[minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] gap-8">
+              {user.role !== 'SOLDADO_ACTIVE' && (
+                <div>{renderForm()}</div>
+              )}
+              <div className={`space-y-6 ${user.role === 'SOLDADO_ACTIVE' ? 'xl:col-span-2' : ''}`}>
                 <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
                   {misionesEnriquecidas.map((mision) => renderMissionCard(mision))}
                 </div>

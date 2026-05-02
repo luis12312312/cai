@@ -7,14 +7,33 @@ import Certificados from './pages/Certificados';
 import Misiones from './pages/Misiones';
 import Sectas from './pages/Sectas';
 
-const PrivateRoute = ({ children }) => {
+const PrivateRoute = ({ children, requireAdmin = false }) => {
   const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" replace />;
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requireAdmin && user.role === 'SOLDADO_ACTIVE') {
+    return <Navigate to="/misiones" replace />;
+  }
+
+  return children;
 };
 
 const PublicRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  return token ? <Navigate to="/dashboard" replace /> : children;
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  if (token) {
+    if (user.role === 'SOLDADO_ACTIVE') {
+      return <Navigate to="/misiones" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
 };
 
 function App() {
@@ -40,7 +59,7 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <PrivateRoute>
+            <PrivateRoute requireAdmin={true}>
               <Dashboard />
             </PrivateRoute>
           }
@@ -48,7 +67,7 @@ function App() {
         <Route
           path="/apologetas"
           element={
-            <PrivateRoute>
+            <PrivateRoute requireAdmin={true}>
               <Apologetas />
             </PrivateRoute>
           }
@@ -56,7 +75,7 @@ function App() {
         <Route
           path="/certificados"
           element={
-            <PrivateRoute>
+            <PrivateRoute requireAdmin={true}>
               <Certificados />
             </PrivateRoute>
           }
