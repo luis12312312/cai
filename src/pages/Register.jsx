@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchApi } from '../api';
 
 const Register = () => {
   const navigate = useNavigate();
   const [hasId, setHasId] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  
   const [formData, setFormData] = useState({
+    fullName: '',
     email: '',
+    password: '',
     certificateId: '',
     certificateFile: null,
   });
@@ -16,19 +22,55 @@ const Register = () => {
       ...prev,
       [name]: files ? files[0] : value,
     }));
+    if (error) setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Logica de registro simulada
-    if (hasId) {
-      console.log('Registro con ID:', formData.email, formData.certificateId);
-    } else {
-      console.log('Registro Manual:', formData.email, formData.certificateFile?.name);
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // 1. Registrar al usuario
+      const registerRes = await fetchApi('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          fullName: formData.fullName,
+        }),
+      });
+
+      // Guardar token
+      localStorage.setItem('token', registerRes.accessToken);
+      localStorage.setItem('user', JSON.stringify(registerRes.user));
+
+      // 2. Procesar Activación
+      if (hasId && formData.certificateId) {
+        await fetchApi('/activation/certificate-number', {
+          method: 'POST',
+          body: JSON.stringify({ certificateNumber: formData.certificateId }),
+        });
+      } else if (!hasId && formData.certificateFile) {
+        // Asumimos que ingresa el numero que ve en el certificado en el mismo campo certificateId
+        // Por requerimiento del backend, la foto necesita el numero
+        const formPayload = new FormData();
+        formPayload.append('certificateNumber', formData.certificateId || 'S/N');
+        formPayload.append('certificatePhoto', formData.certificateFile);
+        
+        await fetchApi('/activation/review-request', {
+          method: 'POST',
+          body: formPayload,
+        });
+      }
+
+      // Redirigir al dashboard
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Error en el registro');
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Redirigir de vuelta al login
-    navigate('/login');
   };
 
   return (
@@ -65,7 +107,12 @@ const Register = () => {
           {/* Content Container */}
           <div className="px-10 py-8">
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <div className="bg-error/10 text-error px-4 py-3 rounded-md text-sm text-center mb-4">
+                  {error}
+                </div>
+              )}
               
               {/* Switch Type of Registration */}
               <div className="flex flex-col gap-3 mb-6 bg-surface-container-low p-4 rounded-xl border border-outline-variant/20">
@@ -103,6 +150,25 @@ const Register = () => {
                 </div>
               )}
 
+              {/* Full Name Field */}
+              <div className="space-y-1">
+                <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" htmlFor="fullName">
+                  Nombre Completo
+                </label>
+                <div className="relative group">
+                  <input 
+                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-1 text-on-surface focus:ring-0 focus:border-primary transition-all duration-300 placeholder:text-on-surface/20" 
+                    id="fullName" 
+                    name="fullName" 
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    placeholder="Ej. Juan Pérez" 
+                    required 
+                    type="text"
+                  />
+                </div>
+              </div>
+
               {/* Email Field */}
               <div className="space-y-1">
                 <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" htmlFor="email">
@@ -118,6 +184,26 @@ const Register = () => {
                     placeholder="ej. veritas@cruzada.org" 
                     required 
                     type="email"
+                  />
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-1">
+                <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" htmlFor="password">
+                  Contraseña
+                </label>
+                <div className="relative group">
+                  <input 
+                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-1 text-on-surface focus:ring-0 focus:border-primary transition-all duration-300 placeholder:text-on-surface/20" 
+                    id="password" 
+                    name="password" 
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Mínimo 8 caracteres" 
+                    required 
+                    minLength={8}
+                    type="password"
                   />
                 </div>
               </div>
@@ -163,11 +249,12 @@ const Register = () => {
               {/* Submit Action */}
               <div className="pt-6">
                 <button 
-                  className="w-full vatican-gradient py-4 rounded-md text-white font-label font-semibold tracking-widest uppercase text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3" 
+                  className="w-full vatican-gradient py-4 rounded-md text-white font-label font-semibold tracking-widest uppercase text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50" 
                   type="submit"
+                  disabled={isLoading}
                 >
-                  Enviar Solicitud
-                  <span className="material-symbols-outlined text-sm">send</span>
+                  {isLoading ? 'Enviando Solicitud...' : 'Enviar Solicitud'}
+                  {!isLoading && <span className="material-symbols-outlined text-sm">send</span>}
                 </button>
               </div>
 

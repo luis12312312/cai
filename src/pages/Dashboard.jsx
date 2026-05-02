@@ -94,6 +94,7 @@ const Dashboard = () => {
 
   const handleLogout = (e) => {
     e.preventDefault();
+    localStorage.removeItem('token');
     navigate('/login');
   };
 

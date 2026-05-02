@@ -1,9 +1,81 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchApi } from '../api';
 import { filtrosSectas, sectasEncontradas } from '../data/misionesData';
+
+const initialForm = {
+  sectName: '',
+  locationDescription: '',
+  referenceNote: '',
+};
 
 const Sectas = () => {
   const navigate = useNavigate();
+  const [sectasList, setSectasList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [form, setForm] = useState(initialForm);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
+
+  useEffect(() => {
+    fetchSectas();
+  }, []);
+
+  const fetchSectas = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchApi('/sect-registry?page=1&pageSize=50');
+      if (data && data.items && data.items.length > 0) {
+        const mapped = data.items.map((item, i) => ({
+          id: item.id,
+          nombre: item.sectName,
+          categoria: 'Secta Registrada',
+          riesgo: 'Alto',
+          zona: item.locationDescription,
+          fecha: new Date(item.approvedAt || Date.now()).toLocaleDateString(),
+          estado: 'Caso documentado',
+          referente: 'Equipo CAI',
+          descripcion: item.referenceNote,
+          senales: ['Reporte verificado'],
+        }));
+        setSectasList(mapped);
+      } else {
+        setSectasList(sectasEncontradas);
+      }
+    } catch (error) {
+      console.error('Error fetching sectas:', error);
+      setSectasList(sectasEncontradas);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFieldChange = (field) => (event) => {
+    setForm({ ...form, [field]: event.target.value });
+    if (feedback.message) setFeedback({ type: '', message: '' });
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!form.sectName || !form.locationDescription || !form.referenceNote) {
+      setFeedback({ type: 'error', message: 'Por favor completa todos los campos del reporte.' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await fetchApi('/sect-reports', {
+        method: 'POST',
+        body: JSON.stringify(form),
+      });
+      setFeedback({ type: 'success', message: 'Reporte de secta enviado correctamente. Queda en espera de aprobación.' });
+      setForm(initialForm);
+    } catch (error) {
+      setFeedback({ type: 'error', message: error.message || 'Error al enviar reporte' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const goToDashboard = () => navigate('/dashboard');
   const goToMisiones = () => navigate('/misiones');
@@ -12,19 +84,20 @@ const Sectas = () => {
   const goToSectas = () => navigate('/sectas');
   const handleLogout = (e) => {
     e.preventDefault();
+    localStorage.removeItem('token');
     navigate('/login');
   };
 
   const resumenCasos = useMemo(() => {
-    const abiertas = sectasEncontradas.filter((item) => item.estado !== 'Caso documentado').length;
-    const referentes = new Set(sectasEncontradas.map((item) => item.referente)).size;
+    const abiertas = sectasList.filter((item) => item.estado !== 'Caso documentado').length;
+    const referentes = new Set(sectasList.map((item) => item.referente)).size;
 
     return {
-      detectadas: sectasEncontradas.length,
+      detectadas: sectasList.length,
       abiertas,
       referentes,
     };
-  }, []);
+  }, [sectasList]);
 
   const renderSectaCard = (secta, compact = false) => {
     return (
@@ -84,6 +157,78 @@ const Sectas = () => {
       </article>
     );
   };
+
+  const renderForm = (compact = false) => (
+    <form
+      onSubmit={handleSubmit}
+      className={`rounded-[1.7rem] bg-surface-container-low p-5 shadow-[0_10px_30px_rgba(26,28,26,0.05)] ${compact ? '' : 'sticky top-24'}`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="font-label text-[10px] uppercase tracking-[0.28em] text-secondary">NUEVA ALERTA</p>
+          <h2 className="mt-3 font-headline text-4xl leading-[0.98] text-on-surface">Reportar secta</h2>
+        </div>
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-error/10 text-error">
+          <span className="material-symbols-outlined">gavel</span>
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-4">
+        <label className="block">
+          <span className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Nombre de la secta</span>
+          <input
+            name="sectName"
+            value={form.sectName}
+            onChange={handleFieldChange('sectName')}
+            className="mt-2 w-full rounded-2xl border-none bg-surface-container-lowest px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary/30"
+            placeholder="Ej. Luz del Nuevo Pacto"
+            type="text"
+            required
+          />
+        </label>
+
+        <label className="block">
+          <span className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Ubicación / Zona</span>
+          <input
+            name="locationDescription"
+            value={form.locationDescription}
+            onChange={handleFieldChange('locationDescription')}
+            className="mt-2 w-full rounded-2xl border-none bg-surface-container-lowest px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary/30"
+            placeholder="Ej. Zona norte, Plaza de San Bernardo"
+            type="text"
+            required
+          />
+        </label>
+
+        <label className="block">
+          <span className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Descripción y señales</span>
+          <textarea
+            name="referenceNote"
+            value={form.referenceNote}
+            onChange={handleFieldChange('referenceNote')}
+            className="mt-2 w-full rounded-2xl border-none bg-surface-container-lowest px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary/30"
+            placeholder="Ej. Realizan proselitismo en plazas con material ambiguo..."
+            rows={4}
+            required
+          />
+        </label>
+
+        {feedback.message && (
+          <div className={`mt-4 rounded-2xl px-4 py-3 text-sm ${feedback.type === 'error' ? 'bg-error/10 text-error' : 'bg-[#2e7d32]/10 text-[#2e7d32]'}`}>
+            {feedback.message}
+          </div>
+        )}
+      </div>
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="mt-6 w-full rounded-2xl bg-error px-5 py-4 font-label text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_12px_30px_rgba(220,38,38,0.25)] disabled:opacity-50"
+      >
+        {isSubmitting ? 'Enviando...' : 'Enviar reporte'}
+      </button>
+    </form>
+  );
 
   return (
     <div className="min-h-screen bg-surface text-on-background">
@@ -161,8 +306,18 @@ const Sectas = () => {
             </article>
           </section>
 
+          <section className="mt-6">
+            {renderForm(true)}
+          </section>
+
           <section className="mt-6 space-y-4">
-            {sectasEncontradas.map((secta) => renderSectaCard(secta, true))}
+            {isLoading ? (
+              <p className="text-center text-sm text-on-surface-variant">Cargando registros...</p>
+            ) : sectasList.length > 0 ? (
+              sectasList.map((secta) => renderSectaCard(secta, true))
+            ) : (
+              <p className="text-center text-sm text-on-surface-variant">No hay sectas registradas.</p>
+            )}
           </section>
         </main>
 
@@ -338,8 +493,19 @@ const Sectas = () => {
               </div>
             </section>
 
-            <section className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
-              {sectasEncontradas.map((secta) => renderSectaCard(secta))}
+            <section className="mt-10 grid grid-cols-[360px_minmax(0,1fr)] gap-8">
+              <div>{renderForm()}</div>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                  {isLoading ? (
+                    <p className="col-span-full text-center text-sm text-on-surface-variant">Cargando registros...</p>
+                  ) : sectasList.length > 0 ? (
+                    sectasList.map((secta) => renderSectaCard(secta))
+                  ) : (
+                    <p className="col-span-full text-center text-sm text-on-surface-variant">No hay sectas registradas.</p>
+                  )}
+                </div>
+              </div>
             </section>
           </div>
         </main>

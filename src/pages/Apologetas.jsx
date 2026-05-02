@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchApi } from '../api';
 import {
   apologetas,
   filtrosApologetas,
@@ -112,7 +113,9 @@ const formatCertificateDate = () => {
 
 const Apologetas = () => {
   const navigate = useNavigate();
-  const [selectedId, setSelectedId] = useState(apologetas[0]?.id ?? '');
+  const [apologetasList, setApologetasList] = useState([]);
+  const [isLoadingApologetas, setIsLoadingApologetas] = useState(false);
+  const [selectedId, setSelectedId] = useState('');
   const [selectedMission, setSelectedMission] = useState(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [certificates, setCertificates] = useState(initialCertificates);
@@ -127,6 +130,151 @@ const Apologetas = () => {
   });
   const [certificateFileInputKey, setCertificateFileInputKey] = useState(0);
 
+  const [reviewRequests, setReviewRequests] = useState([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(false);
+
+  useEffect(() => {
+    fetchReviewRequests();
+    fetchApologetas();
+  }, []);
+
+  const fetchApologetas = async () => {
+    setIsLoadingApologetas(true);
+    try {
+      const data = await fetchApi('/friends?page=1&pageSize=50');
+      if (data && data.items && data.items.length > 0) {
+        const iconOptions = ['shield', 'menu_book', 'history_edu', 'flare', 'psychology', 'favorite'];
+        const colorOptions = ['text-primary', 'text-secondary', 'text-error'];
+        const bgOptions = ['bg-primary/10', 'bg-secondary/10', 'bg-error/10'];
+        const especialidadOptions = ['Apologetica Biblica', 'Doctrina Catolica', 'Historia de la Iglesia', 'Sectas y Nuevos Movimientos', 'Filosofia Cristiana', 'Familia y Bioetica'];
+        const gradoOptions = ['Certificado de Apologetica', 'Estudios Propios', 'Certificado Pastoral', 'Escuela de Evangelizacion', 'Diplomado en Apologetica'];
+        
+        const mapped = data.items.map((item, index) => ({
+          id: item.id,
+          nombre: item.fullName,
+          especialidad: especialidadOptions[index % especialidadOptions.length],
+          grado: item.memberId,
+          descripcion: 'Apologeta de la plataforma CAI, activo en la red de defensores.',
+          etiqueta: 'Activo',
+          icono: iconOptions[index % iconOptions.length],
+          color: colorOptions[index % colorOptions.length],
+          fondo: bgOptions[index % bgOptions.length],
+        }));
+        setApologetasList(mapped);
+        setSelectedId(mapped[0].id);
+      } else {
+        // Fallback a los datos dummy si no hay amigos en la API
+        setApologetasList(apologetas);
+        setSelectedId(apologetas[0]?.id ?? '');
+      }
+    } catch (error) {
+      console.error('Error fetching apologetas:', error);
+      setApologetasList(apologetas);
+      setSelectedId(apologetas[0]?.id ?? '');
+    } finally {
+      setIsLoadingApologetas(false);
+    }
+  };
+
+  const fetchReviewRequests = async () => {
+    setIsLoadingRequests(true);
+    try {
+      const data = await fetchApi('/admin/certificate-review-requests?status=PENDING&page=1&pageSize=50');
+      if (data && data.items) {
+        setReviewRequests(data.items);
+      }
+    } catch (error) {
+      console.error('Error fetching review requests:', error);
+    } finally {
+      setIsLoadingRequests(false);
+    }
+  };
+
+  const handleApproveRequest = async (requestId) => {
+    try {
+      await fetchApi(`/admin/certificate-review-requests/${requestId}/approve`, { method: 'POST' });
+      fetchReviewRequests(); // Recargar la lista
+    } catch (error) {
+      alert('Error al aprobar: ' + error.message);
+    }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    try {
+      await fetchApi(`/admin/certificate-review-requests/${requestId}/reject`, { method: 'POST' });
+      fetchReviewRequests(); // Recargar la lista
+    } catch (error) {
+      alert('Error al rechazar: ' + error.message);
+    }
+  };
+
+  const API_URL = import.meta.env.MODE === 'development' ? '/api' : (import.meta.env.VITE_API_URL || 'https://cai-backend-ft29.onrender.com');
+
+  const renderReviewRequests = () => {
+    if (reviewRequests.length === 0 && !isLoadingRequests) return null;
+
+    return (
+      <section className="mt-10 rounded-[1.8rem] bg-surface-container-low p-8 shadow-[0_12px_35px_rgba(26,28,26,0.05)]">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="font-headline text-3xl text-on-surface">Solicitudes de Registro Pendientes</h3>
+            <p className="mt-2 text-sm text-on-surface-variant">Apologetas que han enviado su certificado para revisión manual.</p>
+          </div>
+          <span className="rounded-full bg-secondary/10 px-4 py-2 font-label text-xs uppercase tracking-[0.16em] text-secondary font-bold">
+            {reviewRequests.length} pendientes
+          </span>
+        </div>
+
+        {isLoadingRequests ? (
+          <p className="text-sm text-on-surface-variant">Cargando solicitudes...</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-5">
+            {reviewRequests.map((request) => (
+              <article key={request.id} className="flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-[1.4rem] border border-outline-variant/20 bg-surface px-6 py-5">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3">
+                    <span className="rounded-full bg-primary/10 px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
+                      {request.submittedCertificateNumberRaw || 'Sin número'}
+                    </span>
+                    <span className="text-xs text-on-surface-variant font-medium">ID de usuario: {request.userId}</span>
+                  </div>
+                  <h4 className="mt-3 text-lg font-semibold text-on-surface">Revisión Manual Requerida</h4>
+                  <p className="mt-1 text-sm text-on-surface-variant">El usuario adjuntó una foto de su certificado que debe ser validada.</p>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-3">
+                  <a
+                    href={`${API_URL}/admin/certificate-review-requests/${request.id}/photo`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 rounded-xl border border-outline-variant/30 px-4 py-2 text-sm font-medium text-on-surface hover:bg-surface-container-low transition"
+                  >
+                    <span className="material-symbols-outlined text-sm">visibility</span>
+                    Ver Foto
+                  </a>
+                  <button
+                    onClick={() => handleApproveRequest(request.id)}
+                    className="flex items-center gap-2 rounded-xl bg-[#2e7d32]/10 px-4 py-2 text-sm font-medium text-[#2e7d32] hover:bg-[#2e7d32]/20 transition"
+                  >
+                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                    Aprobar
+                  </button>
+                  <button
+                    onClick={() => handleRejectRequest(request.id)}
+                    className="flex items-center gap-2 rounded-xl bg-error/10 px-4 py-2 text-sm font-medium text-error hover:bg-error/20 transition"
+                  >
+                    <span className="material-symbols-outlined text-sm">cancel</span>
+                    Rechazar
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  };
+
   const goToDashboard = () => navigate('/dashboard');
   const goToApologetas = () => navigate('/apologetas');
   const goToCertificados = () => navigate('/certificados');
@@ -134,24 +282,45 @@ const Apologetas = () => {
   const goToSectas = () => navigate('/sectas');
   const handleLogout = (e) => {
     e.preventDefault();
+    localStorage.removeItem('token');
     navigate('/login');
   };
 
-  const misionesPorApologeta = useMemo(
-    () =>
-      apologetas.map((apologeta) => ({
-        ...apologeta,
-        misiones: misiones
+  const misionesPorApologeta = useMemo(() => {
+    if (apologetasList.length === 0) return [];
+    
+    // Check if we are using dummy data or real API data
+    const isUsingDummyData = apologetasList === apologetas;
+
+    return apologetasList.map((apologeta, index) => {
+      let misionesApologeta = [];
+      
+      if (isUsingDummyData) {
+        misionesApologeta = misiones
           .filter((mision) => mision.apologetas.includes(apologeta.id))
           .map((mision) => ({
             ...mision,
-            nombresApologetas: apologetas
+            nombresApologetas: apologetasList
               .filter((item) => mision.apologetas.includes(item.id))
               .map((item) => item.nombre),
-          })),
-      })),
-    [],
-  );
+          }));
+      } else {
+        // If it's real data from API, the UUID won't match dummy missions 'renato-valdes' etc.
+        // So we just assign them a couple of dummy missions based on index to keep the UI populated.
+        misionesApologeta = misiones
+          .filter((m, i) => i % apologetasList.length === index % apologetasList.length)
+          .map((mision) => ({
+            ...mision,
+            nombresApologetas: [apologeta.nombre],
+          }));
+      }
+
+      return {
+        ...apologeta,
+        misiones: misionesApologeta,
+      };
+    });
+  }, [apologetasList]);
 
   const toggleCard = (id) => {
     setSelectedId((current) => (current === id ? '' : id));
@@ -661,6 +830,8 @@ const Apologetas = () => {
             ))}
           </section>
 
+          {renderReviewRequests()}
+
           <section className="mt-6 space-y-3">
             <div className="flex items-center justify-between rounded-2xl bg-surface-container-low px-4 py-4">
               <div className="flex items-center gap-3">
@@ -886,6 +1057,8 @@ const Apologetas = () => {
                 ))}
               </div>
             </section>
+
+            {renderReviewRequests()}
 
             <section className="mt-10 grid grid-cols-[minmax(0,1fr)_230px] gap-4">
               <div className="flex items-center justify-between rounded-[1.4rem] bg-surface-container-low px-6 py-6">

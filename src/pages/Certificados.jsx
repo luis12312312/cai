@@ -55,6 +55,7 @@ const Certificados = () => {
   const goToCertificados = () => navigate('/certificados');
   const handleLogout = (e) => {
     e.preventDefault();
+    localStorage.removeItem('token');
     navigate('/login');
   };
 
