@@ -1,4 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || 'https://cai-backend-ft29.onrender.com';
+// Cuando estamos en desarrollo, usamos el proxy configurado en vite.config.js bajo '/api'
+// Cuando construyamos para producción, podemos usar la URL real.
+const isDev = import.meta.env.MODE === 'development';
+const API_URL = isDev ? '/api' : (import.meta.env.VITE_API_URL || 'https://cai-backend-ft29.onrender.com');
 
 export const fetchApi = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
