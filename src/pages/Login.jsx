@@ -1,13 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchApi } from '../api';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError('');
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate login
-    navigate('/dashboard');
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetchApi('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+      });
+
+      // Save token and user info
+      localStorage.setItem('token', response.accessToken);
+      localStorage.setItem('user', JSON.stringify(response.user));
+
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Credenciales incorrectas');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -57,6 +83,12 @@ const Login = () => {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-8">
+              {error && (
+                <div className="bg-error/10 text-error px-4 py-3 rounded-md text-sm text-center">
+                  {error}
+                </div>
+              )}
+
               {/* Username Field */}
               <div className="space-y-1">
                 <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" htmlFor="email">
@@ -69,7 +101,9 @@ const Login = () => {
                     name="email" 
                     placeholder="ej. veritas@cruzada.org" 
                     required 
-                    type="text"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
                   />
                 </div>
               </div>
@@ -91,6 +125,8 @@ const Login = () => {
                     name="password" 
                     required 
                     type="password"
+                    value={formData.password}
+                    onChange={handleChange}
                   />
                 </div>
               </div>
@@ -113,11 +149,12 @@ const Login = () => {
               {/* Submit Action */}
               <div className="pt-4">
                 <button 
-                  className="w-full vatican-gradient py-4 rounded-md text-white font-label font-semibold tracking-widest uppercase text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3" 
+                  className="w-full vatican-gradient py-4 rounded-md text-white font-label font-semibold tracking-widest uppercase text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50" 
                   type="submit"
+                  disabled={isLoading}
                 >
-                  Acceder
-                  <span className="material-symbols-outlined text-sm">login</span>
+                  {isLoading ? 'Accediendo...' : 'Acceder'}
+                  {!isLoading && <span className="material-symbols-outlined text-sm">login</span>}
                 </button>
               </div>
 

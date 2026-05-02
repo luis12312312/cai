@@ -1,51 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchApi } from '../api';
 
-const initialCertificates = [
-  {
-    id: 'cert-ap-001',
-    identifier: 'AP-001',
-    normalizedIdentifier: 'ap-001',
-    name: 'Certificado de Formacion Inicial',
-    fileName: 'formacion-inicial.pdf',
-    sizeLabel: '420 KB',
-    uploadedAt: '25/04/2026',
-    status: 'Vigente',
-  },
-  {
-    id: 'cert-ap-002',
-    identifier: 'AP-002',
-    normalizedIdentifier: 'ap-002',
-    name: 'Constancia de Actualizacion Doctrinal',
-    fileName: 'actualizacion-doctrinal.pdf',
-    sizeLabel: '368 KB',
-    uploadedAt: '19/04/2026',
-    status: 'Vigente',
-  },
-];
-
-const formatCertificateDate = () => {
-  const today = new Date();
-  const day = `${today.getDate()}`.padStart(2, '0');
-  const month = `${today.getMonth() + 1}`.padStart(2, '0');
-  const year = today.getFullYear();
+const formatCertificateDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = `${date.getDate()}`.padStart(2, '0');
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const year = date.getFullYear();
 
   return `${day}/${month}/${year}`;
 };
 
 const Certificados = () => {
   const navigate = useNavigate();
-  const [certificates, setCertificates] = useState(initialCertificates);
+  const [certificates, setCertificates] = useState([]);
   const [certificateForm, setCertificateForm] = useState({
     identifier: '',
     name: '',
-    file: null,
   });
   const [certificateFeedback, setCertificateFeedback] = useState({
     type: '',
     message: '',
   });
-  const [certificateFileInputKey, setCertificateFileInputKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    fetchCertificates();
+  }, []);
+
+  const fetchCertificates = async () => {
+    try {
+      const data = await fetchApi('/admin/certificates?page=1&pageSize=100');
+      if (data && data.items) {
+        setCertificates(
+          data.items.map((item) => ({
+            id: item.id,
+            identifier: item.certificateNumber,
+            name: item.issuedToName || 'Sin nombre',
+            status: item.isUsed ? 'Usado' : 'Vigente',
+            uploadedAt: formatCertificateDate(item.createdAt || new Date()),
+          }))
+        );
+      }
+    } catch (error) {
+      console.error('Error fetching certificates:', error);
+    }
+  };
 
   const goToDashboard = () => navigate('/dashboard');
   const goToMisiones = () => navigate('/misiones');
@@ -58,7 +59,7 @@ const Certificados = () => {
   };
 
   const handleCertificateFieldChange = (field) => (event) => {
-    const value = field === 'file' ? event.target.files?.[0] ?? null : event.target.value;
+    const value = event.target.value;
 
     setCertificateForm((current) => ({
       ...current,
@@ -70,60 +71,44 @@ const Certificados = () => {
     }
   };
 
-  const handleCertificateSubmit = (event) => {
+  const handleCertificateSubmit = async (event) => {
     event.preventDefault();
 
     const identifier = certificateForm.identifier.trim();
     const name = certificateForm.name.trim();
-    const file = certificateForm.file;
 
-    if (!identifier || !name || !file) {
+    if (!identifier) {
       setCertificateFeedback({
         type: 'error',
-        message: 'Completa el identificador, el nombre y selecciona el archivo del certificado.',
+        message: 'Completa el identificador del certificado.',
       });
       return;
     }
 
-    const normalizedIdentifier = identifier.toLowerCase();
-    const alreadyExists = certificates.some(
-      (certificate) => certificate.normalizedIdentifier === normalizedIdentifier,
-    );
+    setIsLoading(true);
+    try {
+      const response = await fetchApi('/admin/certificates', {
+        method: 'POST',
+        body: JSON.stringify({
+          certificateNumber: identifier,
+          issuedToName: name || null,
+        }),
+      });
 
-    if (alreadyExists) {
+      setCertificateFeedback({
+        type: 'success',
+        message: `Certificado ${identifier} registrado correctamente.`,
+      });
+      setCertificateForm({ identifier: '', name: '' });
+      fetchCertificates(); // Refresh list
+    } catch (error) {
       setCertificateFeedback({
         type: 'error',
-        message: 'El identificador ingresado ya existe. Usa uno diferente para registrar el certificado.',
+        message: error.message || 'Error al registrar el certificado.',
       });
-      return;
+    } finally {
+      setIsLoading(false);
     }
-
-    const sizeInKb = Math.max(1, Math.round(file.size / 1024));
-
-    setCertificates((current) => [
-      {
-        id: `${normalizedIdentifier}-${Date.now()}`,
-        identifier,
-        normalizedIdentifier,
-        name,
-        fileName: file.name,
-        sizeLabel: `${sizeInKb} KB`,
-        uploadedAt: formatCertificateDate(),
-        status: 'Cargado',
-      },
-      ...current,
-    ]);
-
-    setCertificateForm({
-      identifier: '',
-      name: '',
-      file: null,
-    });
-    setCertificateFeedback({
-      type: 'success',
-      message: `Certificado ${identifier} cargado correctamente.`,
-    });
-    setCertificateFileInputKey((current) => current + 1);
   };
 
   const renderCertificatesContent = (isDesktop = false) => (
@@ -164,7 +149,7 @@ const Certificados = () => {
             </div>
             <div>
               <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Nuevo certificado</p>
-              <p className="mt-1 text-sm text-on-surface-variant">Ingresa los datos y adjunta el archivo.</p>
+              <p className="mt-1 text-sm text-on-surface-variant">Ingresa los datos para registrar un certificado valido.</p>
             </div>
           </div>
 
@@ -184,28 +169,15 @@ const Certificados = () => {
 
             <label className="block">
               <span className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
-                Nombre del certificado
+                Nombre del certificado (Opcional)
               </span>
               <input
                 className="mt-2 w-full rounded-2xl border border-outline-variant/20 bg-surface px-4 py-3 text-sm text-on-surface outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
                 onChange={handleCertificateFieldChange('name')}
-                placeholder="Ej. Certificado de Apologetica Fundamental"
+                placeholder="Ej. Juan Perez"
                 type="text"
                 value={certificateForm.name}
               />
-            </label>
-
-            <label className="block">
-              <span className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Archivo</span>
-              <input
-                key={certificateFileInputKey}
-                className="mt-2 block w-full rounded-2xl border border-dashed border-outline-variant/30 bg-surface px-4 py-3 text-sm text-on-surface file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:font-label file:text-[10px] file:uppercase file:tracking-[0.16em] file:text-primary"
-                onChange={handleCertificateFieldChange('file')}
-                type="file"
-              />
-              <p className="mt-2 text-xs text-on-surface-variant">
-                {certificateForm.file ? `Archivo seleccionado: ${certificateForm.file.name}` : 'Selecciona un archivo PDF o imagen del certificado.'}
-              </p>
             </label>
 
             {certificateFeedback.message ? (
@@ -221,10 +193,11 @@ const Certificados = () => {
             ) : null}
 
             <button
-              className="w-full rounded-2xl bg-primary px-4 py-3 font-label text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_12px_24px_rgba(113,89,24,0.24)] transition hover:opacity-95"
+              className="w-full rounded-2xl bg-primary px-4 py-3 font-label text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_12px_24px_rgba(113,89,24,0.24)] transition hover:opacity-95 disabled:opacity-50"
               type="submit"
+              disabled={isLoading}
             >
-              Cargar certificado
+              {isLoading ? 'Registrando...' : 'Registrar certificado'}
             </button>
           </form>
         </article>
@@ -258,17 +231,12 @@ const Certificados = () => {
                     </span>
                   </div>
                   <h4 className="mt-3 text-base font-semibold text-on-surface">{certificate.name}</h4>
-                  <p className="mt-1 text-sm text-on-surface-variant">{certificate.fileName}</p>
                 </div>
 
-                <div className={`${isDesktop ? 'min-w-[210px] text-right' : 'grid grid-cols-2 gap-3'}`}>
+                <div className={`${isDesktop ? 'min-w-[210px] text-right' : 'grid grid-cols-1 gap-3'}`}>
                   <div>
-                    <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Fecha</p>
+                    <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Fecha de creacion</p>
                     <p className="mt-2 text-sm font-semibold text-on-surface">{certificate.uploadedAt}</p>
-                  </div>
-                  <div>
-                    <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Tamano</p>
-                    <p className="mt-2 text-sm font-semibold text-on-surface">{certificate.sizeLabel}</p>
                   </div>
                 </div>
               </article>
