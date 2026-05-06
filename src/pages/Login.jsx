@@ -24,7 +24,6 @@ const Login = () => {
         body: JSON.stringify(formData),
       });
 
-      // Save token and user info
       localStorage.setItem('token', response.accessToken);
       localStorage.setItem('user', JSON.stringify(response.user));
 
@@ -37,163 +36,146 @@ const Login = () => {
   };
 
   return (
-    <div className="bg-surface font-body text-on-surface min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Architectural Motif */}
-      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
-        <img 
-          alt="" 
-          className="w-full h-full object-cover grayscale" 
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgjmRHDMsIitW5NaB6l6C00CvYAAfhEyGJkW4WcTh_lZv8G4ApkVJ01QjNbFYwAp0H-mIZiNkg-2Bo8_NfZ3kfzwbrHe4PRuPpNqh5Q9aisu_c2QU9R7hhWy02D9lCnbMslxgQi3tcLh25fzjo7mZk5LHbppcrqpF0nNyeooHEd297Ir-yAo4uTqk0FamcMmuxaqWsYFMlDUF7wBB8Li7fjB2Ud-0vs2i42y_MA1-hD3CrRF3Un9n08NmD3FiuutAqfLCyUrhE"
+    <div className="cai-auth-shell relative min-h-screen overflow-hidden text-white flex flex-col">
+      <div className="absolute inset-0 bg-[#04060b]" aria-hidden="true" />
+      <div className="cai-overlay-grid absolute inset-0 opacity-30" aria-hidden="true" />
+      <div
+        className="absolute inset-0 opacity-30 mix-blend-screen"
+        aria-hidden="true"
+        style={{
+          background:
+            'radial-gradient(circle at 20% 20%, rgba(232,197,110,0.18), transparent 20%), radial-gradient(circle at 80% 18%, rgba(120,24,42,0.28), transparent 24%), radial-gradient(circle at 70% 72%, rgba(26,54,93,0.3), transparent 32%)',
+        }}
+      />
+      <div className="absolute inset-y-0 right-0 w-full opacity-25" aria-hidden="true">
+        <img
+          alt=""
+          className="h-full w-full object-cover object-center"
+          src="https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=1600&q=80"
         />
+        <div className="absolute inset-0 bg-gradient-to-l from-[#05070c] via-[#07101a]/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#05070c] via-[#05070c]/50 to-[#05070c]/90" />
       </div>
 
-      {/* Decorative Elements */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-outline-variant opacity-30 z-10"></div>
-
-      <main className="relative z-20 w-full max-w-md">
-        {/* Main Login Card */}
-        <div className="bg-surface-container-lowest shadow-[0px_0px_40px_rgba(26,28,26,0.06)] overflow-hidden rounded-xl border border-outline-variant/10">
-          {/* Arched Visual Header */}
-          <div className="h-32 relative arched-header overflow-hidden mx-4 mt-4">
-            <img 
-              alt="" 
-              className="w-full h-full object-cover" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJhNBRCnFu-YR3P-dnoFY3n2WrO0E5DOVG63XCLYJBv9TqKfgyk5PPwMGkYKLnorkp-C_YzjaUfH7dz03Hi4oi3mTPqkIivktv75mjRr0GfGglSoGuvR0zZlc2S7tHgJHjd8v1iroeTirBzi3DPyZtEWY6ZeKDxkTgK0GAQQbxSBB3X8cU-BPfdWp3jmN-kVSJeRBVFUwhXLObVxK1d5fHnIUaFJMQu_Vpi52XDfMdC-_1pn5n0Vv3xVYNTy1GUnlfrHcKs6-m"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent"></div>
-            <div className="absolute bottom-4 left-6">
-              <span className="text-white/80 font-label text-[10px] tracking-[0.2em] uppercase">Ecclesia Digitum</span>
+      <header className="fixed inset-x-0 top-0 z-30">
+        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+          <div className="cai-panel rounded-full px-4 py-3 sm:px-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[0.65rem] uppercase tracking-[0.38em] text-[#d8c08b]">CAI</p>
+                <h1 className="cai-display text-sm font-semibold text-white sm:text-base">
+                  Cruzada Apologetica Itinerante
+                </h1>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/register')}
+                className="rounded-full border border-[#d8c08b]/30 px-4 py-2 text-sm text-white transition-colors hover:border-[#d8c08b]/60 hover:bg-white/5"
+              >
+                Registrarse
+              </button>
             </div>
           </div>
+        </div>
+      </header>
 
-          {/* Content Container */}
-          <div className="px-10 py-12">
-            {/* Branding */}
-            <header className="text-center mb-10">
-              <h1 className="font-headline text-2xl font-bold text-primary tracking-tight leading-tight">
-                Plataforma Cruzada<br/>
-                <span className="text-lg font-normal italic opacity-80">Apologética Itinerante</span>
-              </h1>
-              <div className="mt-4 flex justify-center items-center gap-4">
-                <div className="h-px w-8 bg-outline-variant/40"></div>
-                <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>shield_person</span>
-                <div className="h-px w-8 bg-outline-variant/40"></div>
-              </div>
-            </header>
+      <main className="relative z-20 flex-grow flex items-center justify-center px-4 pt-24 pb-10 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md">
+          <div className="cai-panel rounded-[2rem] p-6 sm:p-8">
+            <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-6 text-center">
+              <span className="material-symbols-outlined text-4xl text-[#d8c08b] mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>shield_person</span>
+              <p className="text-[0.68rem] uppercase tracking-[0.32em] text-[#d8c08b]">Acceso seguro</p>
+              <h3 className="cai-display mt-3 text-3xl font-semibold text-white">Ingresar</h3>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {error && (
-                <div className="bg-error/10 text-error px-4 py-3 rounded-md text-sm text-center">
-                  {error}
-                </div>
-              )}
+              <form onSubmit={handleSubmit} className="mt-8 text-left space-y-5">
+                {error && (
+                  <div className="rounded-2xl border border-[#cf5d67]/30 bg-[#5f1620]/30 px-4 py-3 text-sm text-[#ffd8dc]">
+                    {error}
+                  </div>
+                )}
 
-              {/* Username Field */}
-              <div className="space-y-1">
-                <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" htmlFor="email">
-                  Correo o ID de Usuario
-                </label>
-                <div className="relative group">
-                  <input 
-                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-1 text-on-surface focus:ring-0 focus:border-primary transition-all duration-300 placeholder:text-on-surface/20" 
-                    id="email" 
-                    name="email" 
-                    placeholder="ej. veritas@cruzada.org" 
-                    required 
+                <div className="space-y-2">
+                  <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70" htmlFor="email">
+                    Correo electronico
+                  </label>
+                  <input
+                    className="cai-input w-full rounded-2xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-white/30"
+                    id="email"
+                    name="email"
+                    placeholder="ej. veritas@cruzada.org"
+                    required
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
                   />
                 </div>
-              </div>
 
-              {/* Password Field */}
-              <div className="space-y-1">
-                <div className="flex justify-between items-end px-1">
-                  <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest" htmlFor="password">
-                    Contraseña
-                  </label>
-                  <a className="font-label text-[10px] text-primary/70 hover:text-primary transition-colors duration-300 underline decoration-primary/20 underline-offset-4" href="#">
-                    ¿Olvidó su contraseña?
-                  </a>
-                </div>
-                <div className="relative">
-                  <input 
-                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-1 text-on-surface focus:ring-0 focus:border-primary transition-all duration-300" 
-                    id="password" 
-                    name="password" 
-                    required 
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70" htmlFor="password">
+                      Contrasena
+                    </label>
+                  </div>
+                  <input
+                    className="cai-input w-full rounded-2xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-white/30"
+                    id="password"
+                    name="password"
+                    placeholder="Ingrese su contrasena"
+                    required
                     type="password"
                     value={formData.password}
                     onChange={handleChange}
                   />
                 </div>
-              </div>
 
-              {/* Options */}
-              <div className="flex items-center space-x-3 px-1">
-                <div className="relative flex items-center">
-                  <input 
-                    className="h-4 w-4 rounded-sm border-outline-variant text-primary focus:ring-primary/20 bg-transparent" 
-                    id="remember" 
-                    name="remember" 
-                    type="checkbox"
-                  />
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-black/10 px-4 py-3">
+                  <label className="flex items-center gap-3 text-sm text-white/72" htmlFor="remember">
+                    <input
+                      className="h-4 w-4 rounded border-white/20 bg-transparent text-[#d8c08b] focus:ring-[#d8c08b]/25"
+                      id="remember"
+                      name="remember"
+                      type="checkbox"
+                    />
+                    Mantener sesion
+                  </label>
+                  <button
+                    type="button"
+                    className="text-xs uppercase tracking-[0.24em] text-[#d8c08b]/80 transition-colors hover:text-[#d8c08b]"
+                  >
+                    Soporte
+                  </button>
                 </div>
-                <label className="font-label text-xs text-on-surface-variant font-medium" htmlFor="remember">
-                  Mantener sesión iniciada
-                </label>
-              </div>
 
-              {/* Submit Action */}
-              <div className="pt-4">
-                <button 
-                  className="w-full vatican-gradient py-4 rounded-md text-white font-label font-semibold tracking-widest uppercase text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50" 
+                <button
+                  className="cai-button-primary flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-sm font-semibold uppercase tracking-[0.24em] text-white transition-all disabled:cursor-not-allowed disabled:opacity-60"
                   type="submit"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Accediendo...' : 'Acceder'}
                   {!isLoading && <span className="material-symbols-outlined text-sm">login</span>}
                 </button>
-              </div>
+              </form>
 
-              <div className="mt-6 text-center">
-                <span className="font-label text-[11px] text-outline uppercase tracking-widest">¿No tiene una cuenta? </span>
-                <button 
+              <div className="mt-6 text-center text-sm text-white/65">
+                <span>¿No tiene una cuenta? </span>
+                <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="font-label text-[11px] text-primary font-bold hover:text-primary/80 transition-colors duration-300 underline decoration-primary/20 underline-offset-4 uppercase tracking-widest"
+                  className="font-semibold uppercase tracking-[0.18em] text-[#e5cd95] transition-colors hover:text-white"
                 >
                   Registrarse
                 </button>
               </div>
-            </form>
-
-            {/* Footer Support */}
-            <div className="mt-12 text-center">
-              <p className="font-label text-[10px] text-outline uppercase tracking-[0.15em] leading-relaxed">Sub lumine Ecclesiae</p>
             </div>
           </div>
         </div>
-
-        {/* Global Footer Branding (Static for Login) */}
-        <footer className="mt-8 text-center flex flex-col items-center gap-4 w-full">
-          <div className="h-px w-12 bg-outline-variant opacity-40"></div>
-          <p className="font-label text-[10px] text-on-surface/40 tracking-[0.2em] uppercase">
-            © MMXXIV Plataforma Cruzada Apologética Itinerante
-          </p>
-          <div className="flex gap-6 opacity-40">
-            <a className="font-label text-[10px] uppercase tracking-widest hover:opacity-100 transition-opacity" href="#">Privacidad</a>
-            <a className="font-label text-[10px] uppercase tracking-widest hover:opacity-100 transition-opacity" href="#">Términos de Fe</a>
-          </div>
-        </footer>
       </main>
 
-      {/* Decorative Corner Element */}
-      <div className="fixed bottom-0 right-0 p-12 opacity-5 hidden md:block">
-        <span className="material-symbols-outlined text-[120px]" style={{ fontVariationSettings: "'FILL' 0, 'wght' 100" }}>policy</span>
-      </div>
+      <footer className="relative z-20 mt-auto border-t border-white/8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 text-center text-sm text-white/55 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+          <p>CAI · Plataforma Cruzada Apologetica Itinerante</p>
+        </div>
+      </footer>
     </div>
   );
 };

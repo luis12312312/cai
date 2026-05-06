@@ -141,36 +141,59 @@ const Apologetas = () => {
   const fetchApologetas = async () => {
     setIsLoadingApologetas(true);
     try {
-      const data = await fetchApi('/friends?page=1&pageSize=50');
-      if (data && data.items && data.items.length > 0) {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
+      
+      let data = null;
+      
+      if (isAdmin) {
+        try {
+          data = await fetchApi('/admin/users?role=SOLDADO_ACTIVE&page=1&pageSize=50');
+        } catch (err) {
+          console.warn('Error fetching /admin/users for admin', err);
+        }
+      }
+      
+      if (!data && !isAdmin) {
+        try {
+          data = await fetchApi('/friends?page=1&pageSize=50');
+        } catch (err) {
+          console.warn('Error fetching /friends', err);
+        }
+      }
+      
+      // Mapeamos los datos obtenidos
+      let mapped = [];
+      const arrayData = data?.items || [];
+      
+      if (arrayData && arrayData.length > 0) {
         const iconOptions = ['shield', 'menu_book', 'history_edu', 'flare', 'psychology', 'favorite'];
         const colorOptions = ['text-primary', 'text-secondary', 'text-error'];
         const bgOptions = ['bg-primary/10', 'bg-secondary/10', 'bg-error/10'];
         const especialidadOptions = ['Apologetica Biblica', 'Doctrina Catolica', 'Historia de la Iglesia', 'Sectas y Nuevos Movimientos', 'Filosofia Cristiana', 'Familia y Bioetica'];
-        const gradoOptions = ['Certificado de Apologetica', 'Estudios Propios', 'Certificado Pastoral', 'Escuela de Evangelizacion', 'Diplomado en Apologetica'];
         
-        const mapped = data.items.map((item, index) => ({
-          id: item.id,
-          nombre: item.fullName,
+        mapped = arrayData.map((item, index) => ({
+          id: item.userId || item.id || `soldado-${index}`,
+          nombre: item.fullName || item.name || item.userName || `Soldado ${String(item.userId || item.id).substring(0,4)}`,
           especialidad: especialidadOptions[index % especialidadOptions.length],
-          grado: item.memberId,
+          grado: item.rankCode || item.memberId || 'RECRUTA',
           descripcion: 'Apologeta de la plataforma CAI, activo en la red de defensores.',
-          etiqueta: 'Activo',
+          etiqueta: item.status || item.activationState || 'Activo',
           icono: iconOptions[index % iconOptions.length],
           color: colorOptions[index % colorOptions.length],
           fondo: bgOptions[index % bgOptions.length],
         }));
-        setApologetasList(mapped);
-        setSelectedId(mapped[0].id);
-      } else {
-        // Fallback a los datos dummy si no hay amigos en la API
-        setApologetasList(apologetas);
-        setSelectedId(apologetas[0]?.id ?? '');
       }
+
+      // Si la base está vacía se mostrará el mensaje en la UI
+      const finalApologetas = mapped.length > 0 ? mapped : [];
+      
+      setApologetasList(finalApologetas);
+      setSelectedId(finalApologetas[0]?.id ?? '');
     } catch (error) {
       console.error('Error fetching apologetas:', error);
-      setApologetasList(apologetas);
-      setSelectedId(apologetas[0]?.id ?? '');
+      setApologetasList([]);
+      setSelectedId('');
     } finally {
       setIsLoadingApologetas(false);
     }
@@ -179,6 +202,14 @@ const Apologetas = () => {
   const fetchReviewRequests = async () => {
     setIsLoadingRequests(true);
     try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
+      
+      if (!isAdmin) {
+        setReviewRequests([]);
+        return;
+      }
+      
       const data = await fetchApi('/admin/certificate-review-requests?status=PENDING&page=1&pageSize=50');
       if (data && data.items) {
         setReviewRequests(data.items);
@@ -211,68 +242,7 @@ const Apologetas = () => {
   const API_URL = import.meta.env.MODE === 'development' ? '/api' : (import.meta.env.VITE_API_URL || 'https://cai-backend-ft29.onrender.com');
 
   const renderReviewRequests = () => {
-    if (reviewRequests.length === 0 && !isLoadingRequests) return null;
-
-    return (
-      <section className="mt-10 rounded-[1.8rem] bg-surface-container-low p-8 shadow-[0_12px_35px_rgba(26,28,26,0.05)]">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="font-headline text-3xl text-on-surface">Solicitudes de Registro Pendientes</h3>
-            <p className="mt-2 text-sm text-on-surface-variant">Apologetas que han enviado su certificado para revisión manual.</p>
-          </div>
-          <span className="rounded-full bg-secondary/10 px-4 py-2 font-label text-xs uppercase tracking-[0.16em] text-secondary font-bold">
-            {reviewRequests.length} pendientes
-          </span>
-        </div>
-
-        {isLoadingRequests ? (
-          <p className="text-sm text-on-surface-variant">Cargando solicitudes...</p>
-        ) : (
-          <div className="grid grid-cols-1 gap-5">
-            {reviewRequests.map((request) => (
-              <article key={request.id} className="flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-[1.4rem] border border-outline-variant/20 bg-surface px-6 py-5">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <span className="rounded-full bg-primary/10 px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
-                      {request.submittedCertificateNumberRaw || 'Sin número'}
-                    </span>
-                    <span className="text-xs text-on-surface-variant font-medium">ID de usuario: {request.userId}</span>
-                  </div>
-                  <h4 className="mt-3 text-lg font-semibold text-on-surface">Revisión Manual Requerida</h4>
-                  <p className="mt-1 text-sm text-on-surface-variant">El usuario adjuntó una foto de su certificado que debe ser validada.</p>
-                </div>
-                
-                <div className="flex flex-wrap items-center gap-3">
-                  <a
-                    href={`${API_URL}/admin/certificate-review-requests/${request.id}/photo`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 rounded-xl border border-outline-variant/30 px-4 py-2 text-sm font-medium text-on-surface hover:bg-surface-container-low transition"
-                  >
-                    <span className="material-symbols-outlined text-sm">visibility</span>
-                    Ver Foto
-                  </a>
-                  <button
-                    onClick={() => handleApproveRequest(request.id)}
-                    className="flex items-center gap-2 rounded-xl bg-[#2e7d32]/10 px-4 py-2 text-sm font-medium text-[#2e7d32] hover:bg-[#2e7d32]/20 transition"
-                  >
-                    <span className="material-symbols-outlined text-sm">check_circle</span>
-                    Aprobar
-                  </button>
-                  <button
-                    onClick={() => handleRejectRequest(request.id)}
-                    className="flex items-center gap-2 rounded-xl bg-error/10 px-4 py-2 text-sm font-medium text-error hover:bg-error/20 transition"
-                  >
-                    <span className="material-symbols-outlined text-sm">cancel</span>
-                    Rechazar
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-    );
+    return null;
   };
 
   const goToDashboard = () => navigate('/dashboard');
@@ -289,31 +259,10 @@ const Apologetas = () => {
   const misionesPorApologeta = useMemo(() => {
     if (apologetasList.length === 0) return [];
     
-    // Check if we are using dummy data or real API data
-    const isUsingDummyData = apologetasList === apologetas;
-
     return apologetasList.map((apologeta, index) => {
+      // Como ahora solo usamos datos reales, si no tienen misiones cargadas, les asignamos un array vacío
+      // Si el backend devuelve las misiones asociadas al usuario en el futuro, se mapearán aquí.
       let misionesApologeta = [];
-      
-      if (isUsingDummyData) {
-        misionesApologeta = misiones
-          .filter((mision) => mision.apologetas.includes(apologeta.id))
-          .map((mision) => ({
-            ...mision,
-            nombresApologetas: apologetasList
-              .filter((item) => mision.apologetas.includes(item.id))
-              .map((item) => item.nombre),
-          }));
-      } else {
-        // If it's real data from API, the UUID won't match dummy missions 'renato-valdes' etc.
-        // So we just assign them a couple of dummy missions based on index to keep the UI populated.
-        misionesApologeta = misiones
-          .filter((m, i) => i % apologetasList.length === index % apologetasList.length)
-          .map((mision) => ({
-            ...mision,
-            nombresApologetas: [apologeta.nombre],
-          }));
-      }
 
       return {
         ...apologeta,
@@ -787,12 +736,25 @@ const Apologetas = () => {
                 Apologetas
               </h1>
             </div>
-            <button
-              onClick={goToDashboard}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/10 bg-surface-container-low text-primary"
-            >
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => navigate('/apologetas-pendientes')}
+                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-primary/10 bg-surface-container-low text-primary"
+              >
+                <span className="material-symbols-outlined">notifications</span>
+                {reviewRequests.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[9px] font-bold text-white">
+                    {reviewRequests.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={goToDashboard}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/10 bg-surface-container-low text-primary"
+              >
+                <span className="material-symbols-outlined">arrow_back</span>
+              </button>
+            </div>
           </header>
 
           <section className="mt-5 flex items-center justify-between rounded-[1.6rem] bg-surface-container-low px-4 py-4 shadow-[0_8px_24px_rgba(26,28,26,0.05)]">
@@ -804,9 +766,9 @@ const Apologetas = () => {
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsA9vxxIuSP7qNG1e99bXXi-5fFMtg83C45ejeEN0AP56SQTm_kmFT9-NJPL-fRJ9dbSzB7PXCHNEyeXrgzlBENs8oajQkFV5sVOnmPrG9IPtkmqYJF9tQMCtvqZFHACLprAUlENal-TockvP34u0U4NECCLbyBKv4EXczJ1pJxv8ArWR6jvKEifgjVOv0Xp1szkGrJPVApiKGw0gPYk6btrJBeovJwSundEl4zuc2JDbBVBE_mWCv7dkKRsOlAQtJoTuG54GL"
                 />
               </div>
-              <div>
-                <p className="font-headline text-lg font-bold leading-tight text-primary">Padre Luis Toro</p>
-                <p className="text-xs font-label uppercase tracking-widest text-on-surface-variant">Sacerdote</p>
+              <div className="flex flex-col justify-center">
+                <h2 className="font-headline text-base font-bold leading-tight text-primary">{user.fullName || 'Usuario'}</h2>
+                <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">{isAdmin ? 'Administrador' : 'Soldado'}</p>
               </div>
             </div>
             <button
@@ -850,6 +812,19 @@ const Apologetas = () => {
           </section>
 
           <section className="mt-6 space-y-4">
+            {apologetasList.length === 0 && !isLoadingApologetas && (
+              <div className="rounded-2xl bg-surface-container-low p-8 text-center">
+                <span className="material-symbols-outlined text-4xl text-on-surface-variant/50">group_off</span>
+                <p className="mt-2 text-sm text-on-surface-variant">No se encontraron soldados registrados.</p>
+              </div>
+            )}
+            
+            {isLoadingApologetas && (
+              <div className="rounded-2xl bg-surface-container-low p-8 text-center">
+                <p className="text-sm text-on-surface-variant">Cargando soldados...</p>
+              </div>
+            )}
+
             {misionesPorApologeta.map((apologeta) => {
               const isOpen = selectedId === apologeta.id;
               return (
@@ -873,44 +848,11 @@ const Apologetas = () => {
                 <span className="mt-4 inline-flex rounded-full bg-surface-container-low px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
                   {apologeta.etiqueta}
                 </span>
-                <div className="mt-5 flex items-center justify-between border-t border-outline-variant/20 pt-4">
-                  <div>
-                    <p className="font-headline text-4xl leading-none text-on-surface">{apologeta.misiones.length}</p>
-                    <p className="mt-1 font-label text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">Misiones realizadas</p>
-                  </div>
-                  <button
-                    onClick={() => toggleCard(apologeta.id)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant/30 text-primary"
-                  >
-                    <span className="material-symbols-outlined">{isOpen ? 'expand_less' : 'arrow_forward'}</span>
-                  </button>
-                </div>
-                {isOpen && (
-                  <div className="mt-5 space-y-3 border-t border-outline-variant/20 pt-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-headline text-2xl text-on-surface">Misiones realizadas</h3>
-                      <button
-                        onClick={goToMisiones}
-                        className="font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-primary"
-                      >
-                        Ir a modulo
-                      </button>
-                    </div>
-                    {apologeta.misiones.map((mision) => renderMissionItem(mision, apologeta.nombre, true))}
-                  </div>
-                )}
               </article>
               );
             })}
           </section>
         </main>
-
-        <button
-          onClick={goToMisiones}
-          className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_14px_35px_rgba(113,89,24,0.35)]"
-        >
-          <span className="material-symbols-outlined text-2xl">add</span>
-        </button>
 
         <nav className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 overflow-hidden rounded-[2rem] bg-surface-container-low shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
           <div
@@ -953,18 +895,11 @@ const Apologetas = () => {
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsA9vxxIuSP7qNG1e99bXXi-5fFMtg83C45ejeEN0AP56SQTm_kmFT9-NJPL-fRJ9dbSzB7PXCHNEyeXrgzlBENs8oajQkFV5sVOnmPrG9IPtkmqYJF9tQMCtvqZFHACLprAUlENal-TockvP34u0U4NECCLbyBKv4EXczJ1pJxv8ArWR6jvKEifgjVOv0Xp1szkGrJPVApiKGw0gPYk6btrJBeovJwSundEl4zuc2JDbBVBE_mWCv7dkKRsOlAQtJoTuG54GL"
                 />
               </div>
-              <div>
-                <h2 className="font-headline text-lg font-bold leading-tight text-[#715918]">Padre Luis Toro</h2>
-                <p className="text-xs font-label uppercase tracking-widest opacity-60">Sacerdote</p>
+              <div className="flex flex-col justify-center">
+                <h2 className="font-headline text-base font-bold leading-tight text-primary">{user.fullName || 'Usuario'}</h2>
+                <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">{isAdmin ? 'Administrador' : 'Soldado'}</p>
               </div>
             </div>
-            <button
-              onClick={goToMisiones}
-              className="vatican-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium text-on-primary shadow-lg shadow-primary/10"
-            >
-              <span className="material-symbols-outlined text-sm">add</span>
-              <span className="font-label">Nueva Mision</span>
-            </button>
           </div>
 
           <nav className="flex-1 space-y-2">
@@ -1018,10 +953,10 @@ const Apologetas = () => {
         </aside>
 
         <main className="ml-72 min-h-screen">
-          <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-[#715918]/10 bg-[#faf9f5]/80 px-12 backdrop-blur-xl">
+          <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-primary/10 bg-surface/80 px-12 backdrop-blur-xl">
             <div className="flex items-center gap-4">
-              <h1 className="font-headline text-xl font-bold tracking-tight text-[#715918]">
-                Plataforma Cruzada Apologetica Itinerante
+              <h1 className="font-headline text-xl font-bold tracking-tight text-primary">
+                Cruzada Apologetica Itinerante
               </h1>
             </div>
             <div className="flex items-center gap-6">
@@ -1033,8 +968,16 @@ const Apologetas = () => {
                 />
                 <span className="material-symbols-outlined absolute right-3 top-1.5 text-lg text-primary/40">search</span>
               </div>
-              <button className="transition-opacity hover:opacity-70">
+              <button 
+                onClick={() => navigate('/apologetas-pendientes')}
+                className="relative transition-opacity hover:opacity-70"
+              >
                 <span className="material-symbols-outlined text-primary">notifications</span>
+                {reviewRequests.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[9px] font-bold text-white">
+                    {reviewRequests.length}
+                  </span>
+                )}
               </button>
             </div>
           </header>
@@ -1102,30 +1045,6 @@ const Apologetas = () => {
                   <span className="mt-5 inline-flex w-fit rounded-full bg-surface-container-low px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
                     {apologeta.etiqueta}
                   </span>
-
-                  <div className="mt-auto flex items-end justify-between border-t border-outline-variant/20 pt-6">
-                    <div>
-                      <p className="font-headline text-5xl leading-none text-on-surface">{apologeta.misiones.length}</p>
-                      <p className="mt-2 font-label text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">Misiones realizadas</p>
-                    </div>
-                    <button onClick={() => toggleCard(apologeta.id)} className="flex h-10 w-10 items-center justify-center rounded-full text-primary">
-                      <span className="material-symbols-outlined">{isOpen ? 'expand_less' : 'arrow_forward'}</span>
-                    </button>
-                  </div>
-                  {isOpen && (
-                    <div className="mt-6 space-y-4 border-t border-outline-variant/20 pt-6">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-headline text-3xl text-on-surface">Misiones realizadas</h4>
-                        <button
-                          onClick={goToMisiones}
-                          className="font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-primary"
-                        >
-                          Gestionar misiones
-                        </button>
-                      </div>
-                      {apologeta.misiones.map((mision) => renderMissionItem(mision, apologeta.nombre))}
-                    </div>
-                  )}
                 </article>
                 );
               })}
@@ -1144,13 +1063,6 @@ const Apologetas = () => {
             </section>
           </div>
         </main>
-
-        <button
-          onClick={goToMisiones}
-          className="fixed bottom-8 right-8 z-40 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_18px_40px_rgba(113,89,24,0.35)]"
-        >
-          <span className="material-symbols-outlined text-3xl">add</span>
-        </button>
       </div>
     </div>
   );

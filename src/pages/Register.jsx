@@ -7,7 +7,7 @@ const Register = () => {
   const [hasId, setHasId] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -31,7 +31,6 @@ const Register = () => {
     setError('');
 
     try {
-      // 1. Registrar al usuario
       const registerRes = await fetchApi('/auth/register', {
         method: 'POST',
         body: JSON.stringify({
@@ -41,30 +40,25 @@ const Register = () => {
         }),
       });
 
-      // Guardar token
       localStorage.setItem('token', registerRes.accessToken);
       localStorage.setItem('user', JSON.stringify(registerRes.user));
 
-      // 2. Procesar Activación
       if (hasId && formData.certificateId) {
         await fetchApi('/activation/certificate-number', {
           method: 'POST',
           body: JSON.stringify({ certificateNumber: formData.certificateId }),
         });
       } else if (!hasId && formData.certificateFile) {
-        // Asumimos que ingresa el numero que ve en el certificado en el mismo campo certificateId
-        // Por requerimiento del backend, la foto necesita el numero
         const formPayload = new FormData();
         formPayload.append('certificateNumber', formData.certificateId || 'S/N');
         formPayload.append('certificatePhoto', formData.certificateFile);
-        
+
         await fetchApi('/activation/review-request', {
           method: 'POST',
           body: formPayload,
         });
       }
 
-      // Redirigir al dashboard
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Error en el registro');
@@ -74,218 +68,235 @@ const Register = () => {
   };
 
   return (
-    <div className="bg-surface font-body text-on-surface min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Architectural Motif */}
-      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
-        <img 
-          alt="" 
-          className="w-full h-full object-cover grayscale" 
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgjmRHDMsIitW5NaB6l6C00CvYAAfhEyGJkW4WcTh_lZv8G4ApkVJ01QjNbFYwAp0H-mIZiNkg-2Bo8_NfZ3kfzwbrHe4PRuPpNqh5Q9aisu_c2QU9R7hhWy02D9lCnbMslxgQi3tcLh25fzjo7mZk5LHbppcrqpF0nNyeooHEd297Ir-yAo4uTqk0FamcMmuxaqWsYFMlDUF7wBB8Li7fjB2Ud-0vs2i42y_MA1-hD3CrRF3Un9n08NmD3FiuutAqfLCyUrhE"
+    <div className="cai-auth-shell relative min-h-screen overflow-hidden text-white flex flex-col">
+      <div className="absolute inset-0 bg-[#04060b]" aria-hidden="true" />
+      <div className="cai-overlay-grid absolute inset-0 opacity-30" aria-hidden="true" />
+      <div
+        className="absolute inset-0 opacity-35 mix-blend-screen"
+        aria-hidden="true"
+        style={{
+          background:
+            'radial-gradient(circle at 18% 18%, rgba(232,197,110,0.14), transparent 20%), radial-gradient(circle at 82% 22%, rgba(120,24,42,0.25), transparent 24%), radial-gradient(circle at 72% 76%, rgba(22,48,88,0.3), transparent 30%)',
+        }}
+      />
+      <div className="absolute inset-y-0 left-0 w-full opacity-20" aria-hidden="true">
+        <img
+          alt=""
+          className="h-full w-full object-cover object-center"
+          src="https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=80"
         />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#05070c] via-[#07101a]/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#05070c] via-[#05070c]/50 to-[#05070c]/90" />
       </div>
 
-      {/* Decorative Elements */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-outline-variant opacity-30 z-10"></div>
-
-      <main className="relative z-20 w-full max-w-md">
-        {/* Main Register Card */}
-        <div className="bg-surface-container-lowest shadow-[0px_0px_40px_rgba(26,28,26,0.06)] overflow-hidden rounded-xl border border-outline-variant/10">
-          
-          {/* Header */}
-          <div className="px-10 pt-10 pb-6 text-center border-b border-outline-variant/10">
-            <h1 className="font-headline text-2xl font-bold text-primary tracking-tight leading-tight">
-              Registro de<br/>
-              <span className="text-lg font-normal italic opacity-80">Apologeta</span>
-            </h1>
-            <div className="mt-4 flex justify-center items-center gap-4">
-              <div className="h-px w-8 bg-outline-variant/40"></div>
-              <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>how_to_reg</span>
-              <div className="h-px w-8 bg-outline-variant/40"></div>
+      <header className="fixed inset-x-0 top-0 z-30">
+        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+          <div className="cai-panel rounded-full px-4 py-3 sm:px-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[0.65rem] uppercase tracking-[0.38em] text-[#d8c08b]">CAI</p>
+                <h1 className="cai-display text-sm font-semibold text-white sm:text-base">
+                  Cruzada Apologetica Itinerante
+                </h1>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="rounded-full border border-[#d8c08b]/30 px-4 py-2 text-sm text-white transition-colors hover:border-[#d8c08b]/60 hover:bg-white/5"
+                >
+                  Volver al acceso
+                </button>
+              </div>
             </div>
           </div>
+        </div>
+      </header>
 
-          {/* Content Container */}
-          <div className="px-10 py-8">
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="bg-error/10 text-error px-4 py-3 rounded-md text-sm text-center mb-4">
-                  {error}
-                </div>
-              )}
-              
-              {/* Switch Type of Registration */}
-              <div className="flex flex-col gap-3 mb-6 bg-surface-container-low p-4 rounded-xl border border-outline-variant/20">
-                <label className="font-label text-xs font-bold text-outline uppercase tracking-widest text-center">
-                  ¿Posee un ID de certificado válido?
-                </label>
-                <div className="flex gap-2 justify-center mt-1">
-                  <button
-                    type="button"
-                    onClick={() => setHasId(true)}
-                    className={`px-4 py-2 text-xs font-label uppercase tracking-widest rounded-lg transition-all ${
-                      hasId ? 'bg-primary text-white shadow-md' : 'bg-transparent text-on-surface-variant hover:bg-primary/5'
-                    }`}
-                  >
-                    Sí, poseo ID
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setHasId(false)}
-                    className={`px-4 py-2 text-xs font-label uppercase tracking-widest rounded-lg transition-all ${
-                      !hasId ? 'bg-primary text-white shadow-md' : 'bg-transparent text-on-surface-variant hover:bg-primary/5'
-                    }`}
-                  >
-                    No poseo ID
-                  </button>
-                </div>
+      <main className="relative z-20 flex-grow flex items-center justify-center px-4 pt-24 pb-10 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md">
+          <div className="cai-panel rounded-[2rem] p-6 sm:p-8">
+            <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-6">
+              <div className="text-center">
+                <span className="material-symbols-outlined text-4xl text-[#d8c08b] mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>how_to_reg</span>
+                <p className="text-[0.68rem] uppercase tracking-[0.32em] text-[#d8c08b]">Incorporacion</p>
+                <h2 className="cai-display mt-3 text-3xl font-semibold text-white">Registro</h2>
               </div>
 
-              {!hasId && (
-                <div className="bg-[#fff8e1]/50 border-l-4 border-secondary p-4 rounded-r-lg mb-6">
-                  <p className="text-xs text-on-surface-variant leading-relaxed">
-                    <strong className="text-secondary block mb-1">Aviso de proceso manual</strong>
-                    Al no contar con un ID previo, su solicitud entrará en una fase de revisión manual. Por favor, adjunte su certificado y espere a que un administrador apruebe su acceso.
-                  </p>
-                </div>
-              )}
+              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                {error && (
+                  <div className="rounded-2xl border border-[#cf5d67]/30 bg-[#5f1620]/30 px-4 py-3 text-sm text-[#ffd8dc]">
+                    {error}
+                  </div>
+                )}
 
-              {/* Full Name Field */}
-              <div className="space-y-1">
-                <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" htmlFor="fullName">
-                  Nombre Completo
-                </label>
-                <div className="relative group">
-                  <input 
-                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-1 text-on-surface focus:ring-0 focus:border-primary transition-all duration-300 placeholder:text-on-surface/20" 
-                    id="fullName" 
-                    name="fullName" 
+                <div className="rounded-2xl border border-[#d8c08b]/16 bg-[#0c121d]/80 p-4 text-center">
+                  <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70">
+                    ¿Posee un ID valido?
+                  </label>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setHasId(true)}
+                      className={`rounded-2xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.18em] transition-all ${
+                        hasId
+                          ? 'cai-button-primary text-white'
+                          : 'border border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      Si
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHasId(false)}
+                      className={`rounded-2xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.18em] transition-all ${
+                        !hasId
+                          ? 'cai-button-primary text-white'
+                          : 'border border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+
+                {!hasId && (
+                  <div className="rounded-2xl border border-[#d8c08b]/18 bg-[#2a1b0a]/35 px-4 py-4 text-sm leading-6 text-white/78 text-center">
+                    <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[#e5cd95]">Revision manual</p>
+                    <p className="mt-1 text-xs">
+                      Envie su certificado para revision. Su solicitud quedara pendiente de aprobacion.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70" htmlFor="fullName">
+                    Nombre completo
+                  </label>
+                  <input
+                    className="cai-input w-full rounded-2xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-white/30"
+                    id="fullName"
+                    name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
-                    placeholder="Ej. Juan Pérez" 
-                    required 
+                    placeholder="Ej. Juan Perez"
+                    required
                     type="text"
                   />
                 </div>
-              </div>
 
-              {/* Email Field */}
-              <div className="space-y-1">
-                <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" htmlFor="email">
-                  Correo Electrónico
-                </label>
-                <div className="relative group">
-                  <input 
-                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-1 text-on-surface focus:ring-0 focus:border-primary transition-all duration-300 placeholder:text-on-surface/20" 
-                    id="email" 
-                    name="email" 
+                <div className="space-y-2">
+                  <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70" htmlFor="email">
+                    Correo electronico
+                  </label>
+                  <input
+                    className="cai-input w-full rounded-2xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-white/30"
+                    id="email"
+                    name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="ej. veritas@cruzada.org" 
-                    required 
+                    placeholder="ej. veritas@cruzada.org"
+                    required
                     type="email"
                   />
                 </div>
-              </div>
 
-              {/* Password Field */}
-              <div className="space-y-1">
-                <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" htmlFor="password">
-                  Contraseña
-                </label>
-                <div className="relative group">
-                  <input 
-                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-1 text-on-surface focus:ring-0 focus:border-primary transition-all duration-300 placeholder:text-on-surface/20" 
-                    id="password" 
-                    name="password" 
+                <div className="space-y-2">
+                  <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70" htmlFor="password">
+                    Contrasena
+                  </label>
+                  <input
+                    className="cai-input w-full rounded-2xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-white/30"
+                    id="password"
+                    name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Mínimo 8 caracteres" 
-                    required 
+                    placeholder="Minimo 8 caracteres"
+                    required
                     minLength={8}
                     type="password"
                   />
                 </div>
-              </div>
 
-              {/* Dynamic Field: ID or File */}
-              {hasId ? (
-                <div className="space-y-1">
-                  <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" htmlFor="certificateId">
-                    ID de Certificado
-                  </label>
-                  <div className="relative">
-                    <input 
-                      className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-1 text-on-surface focus:ring-0 focus:border-primary transition-all duration-300 placeholder:text-on-surface/20" 
-                      id="certificateId" 
-                      name="certificateId" 
+                {hasId ? (
+                  <div className="space-y-2">
+                    <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70" htmlFor="certificateId">
+                      ID de certificado
+                    </label>
+                    <input
+                      className="cai-input w-full rounded-2xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-white/30"
+                      id="certificateId"
+                      name="certificateId"
                       value={formData.certificateId}
                       onChange={handleChange}
                       placeholder="Ej. AP-001"
-                      required 
+                      required
                       type="text"
                     />
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  <label className="block font-label text-[11px] font-medium text-outline uppercase tracking-widest px-1" htmlFor="certificateFile">
-                    Adjuntar Certificado (PDF / Imagen)
-                  </label>
-                  <div className="relative pt-2">
-                    <input 
-                      className="block w-full text-xs text-on-surface file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:font-label file:text-[10px] file:uppercase file:tracking-widest file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer"
-                      id="certificateFile" 
-                      name="certificateFile" 
-                      onChange={handleChange}
-                      required 
-                      type="file"
-                      accept=".pdf,image/*"
-                    />
+                ) : (
+                  <div className="space-y-4 rounded-2xl border border-white/8 bg-black/10 p-4">
+                    <div className="space-y-2">
+                      <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70" htmlFor="certificateId">
+                        Numero de certificado
+                      </label>
+                      <input
+                        className="cai-input w-full rounded-2xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-white/30"
+                        id="certificateId"
+                        name="certificateId"
+                        value={formData.certificateId}
+                        onChange={handleChange}
+                        placeholder="Opcional o S/N"
+                        type="text"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70" htmlFor="certificateFile">
+                        Adjuntar certificado
+                      </label>
+                      <input
+                        className="block w-full text-sm text-white/72 file:mr-4 file:rounded-full file:border file:border-[#d8c08b]/20 file:bg-[#c89d45]/12 file:px-4 file:py-2.5 file:text-xs file:font-semibold file:uppercase file:tracking-[0.18em] file:text-[#f3dcaa] hover:file:bg-[#c89d45]/20"
+                        id="certificateFile"
+                        name="certificateFile"
+                        onChange={handleChange}
+                        required
+                        type="file"
+                        accept=".pdf,image/*"
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Submit Action */}
-              <div className="pt-6">
-                <button 
-                  className="w-full vatican-gradient py-4 rounded-md text-white font-label font-semibold tracking-widest uppercase text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50" 
+                <button
+                  className="cai-button-primary flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-sm font-semibold uppercase tracking-[0.24em] text-white transition-all disabled:cursor-not-allowed disabled:opacity-60"
                   type="submit"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Enviando Solicitud...' : 'Enviar Solicitud'}
+                  {isLoading ? 'Enviando solicitud...' : 'Enviar solicitud'}
                   {!isLoading && <span className="material-symbols-outlined text-sm">send</span>}
                 </button>
-              </div>
+              </form>
 
-              {/* Back to Login */}
-              <div className="mt-6 text-center">
-                <span className="font-label text-[11px] text-outline uppercase tracking-widest">¿Ya posee cuenta? </span>
-                <button 
+              <div className="mt-6 text-center text-sm text-white/65">
+                <span>¿Ya posee cuenta? </span>
+                <button
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="font-label text-[11px] text-primary font-bold hover:text-primary/80 transition-colors duration-300 underline decoration-primary/20 underline-offset-4 uppercase tracking-widest"
+                  className="font-semibold uppercase tracking-[0.18em] text-[#e5cd95] transition-colors hover:text-white"
                 >
                   Volver al inicio
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
-
-        {/* Global Footer Branding */}
-        <footer className="mt-8 text-center flex flex-col items-center gap-4 w-full">
-          <div className="h-px w-12 bg-outline-variant opacity-40"></div>
-          <p className="font-label text-[10px] text-on-surface/40 tracking-[0.2em] uppercase">
-            © MMXXIV Plataforma Cruzada Apologética Itinerante
-          </p>
-        </footer>
       </main>
 
-      {/* Decorative Corner Element */}
-      <div className="fixed bottom-0 right-0 p-12 opacity-5 hidden md:block">
-        <span className="material-symbols-outlined text-[120px]" style={{ fontVariationSettings: "'FILL' 0, 'wght' 100" }}>app_registration</span>
-      </div>
+      <footer className="relative z-20 mt-auto border-t border-white/8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 text-center text-sm text-white/55 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+          <p>CAI · Registro y validacion institucional</p>
+        </div>
+      </footer>
     </div>
   );
 };

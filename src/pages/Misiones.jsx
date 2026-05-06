@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apologetas, misiones } from '../data/misionesData';
+import { fetchApi } from '../api';
+import { apologetas } from '../data/misionesData';
 
 const initialForm = {
   titulo: '',
@@ -84,9 +85,65 @@ const buildMissionEvidenceDetails = (mision) => {
 const Misiones = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState(initialForm);
-  const [misionesLocales, setMisionesLocales] = useState(misiones);
+  const [misionesLocales, setMisionesLocales] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedMision, setSelectedMision] = useState(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [evidenceFile, setEvidenceFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
+
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    fetchMissions();
+    fetchPendingCount();
+  }, []);
+
+  const fetchPendingCount = async () => {
+    try {
+      const data = await fetchApi('/admin/users?role=SOLDADO_PENDING&page=1&pageSize=1');
+      if (data && typeof data.total !== 'undefined') {
+        setPendingCount(data.total);
+      }
+    } catch (err) {
+      console.warn('Error fetching pending count', err);
+    }
+  };
+
+  const fetchMissions = async () => {
+    setIsLoading(true);
+    try {
+      const endpoint = isAdmin ? '/admin/missions?page=1&pageSize=50' : '/missions?page=1&pageSize=50';
+      const data = await fetchApi(endpoint);
+      if (data && data.items) {
+        setMisionesLocales(data.items.map(m => ({
+          id: m.id,
+          titulo: m.title,
+          tipo: m.missionType,
+          lugar: m.description,
+          fecha: new Date(m.publishedAt || m.createdAt || Date.now()).toLocaleDateString(),
+          evidencia: 'Evidencia',
+          resumen: m.description,
+          apologetas: [],
+          publicationState: m.publicationState
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching missions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onInputChange = (event) => {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+    if (feedback.message) setFeedback({ type: '', message: '' });
+  };
 
   const goToDashboard = () => navigate('/dashboard');
   const goToApologetas = () => navigate('/apologetas');
@@ -110,48 +167,71 @@ const Misiones = () => {
     [misionesLocales],
   );
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  const onInputChange = (event) => {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+  const autoAssignMission = async (misionId) => {
+    if (!evidenceFile) {
+      alert("Por favor selecciona un archivo de evidencia antes de enviar.");
+      return;
+    }
+    
+    try {
+      const fd = new FormData();
+      fd.append('proof', evidenceFile);
+      fd.append('submissionNote', 'Evidencia enviada desde la plataforma.');
+      
+      await fetchApi(`/missions/${misionId}/submissions`, {
+        method: 'POST',
+        body: fd
+      });
+      alert("Evidencia enviada correctamente.");
+      setEvidenceFile(null);
+      fetchMissions();
+    } catch (error) {
+      console.error('Error submitting evidence:', error);
+      alert("Error al enviar evidencia: " + error.message);
+    }
   };
 
-  const autoAssignMission = (misionId) => {
-    const currentUserId = apologetas[0]?.id; // Simulacion de usuario logueado (Padre Luis Toro)
-    if (!currentUserId) return;
-
-    setMisionesLocales((current) =>
-      current.map((m) => {
-        if (m.id === misionId && !m.apologetas.includes(currentUserId)) {
-          return { ...m, apologetas: [...m.apologetas, currentUserId] };
-        }
-        return m;
-      }),
-    );
-  };
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (!form.titulo.trim() || !form.lugar.trim() || !form.fecha.trim()) {
+      setFeedback({ type: 'error', message: 'Por favor completa todos los campos requeridos.' });
       return;
     }
 
-    const currentUserId = apologetas[0]?.id; // Autoasignar al creador por defecto
+    setIsSubmitting(true);
+    setFeedback({ type: '', message: '' });
 
-    const nuevaMision = {
-      id: `mision-local-${Date.now()}`,
-      titulo: form.titulo.trim(),
-      tipo: form.tipo,
-      lugar: form.lugar.trim(),
-      fecha: form.fecha.trim(),
-      evidencia: form.evidencia,
-      resumen: `Mision creada para ${form.lugar.trim()} con enfoque en ${form.tipo.toLowerCase()}.`,
-      apologetas: currentUserId ? [currentUserId] : [],
-    };
+    try {
+      const payload = {
+        title: form.titulo.trim(),
+        description: `Lugar: ${form.lugar.trim()}. Fecha: ${form.fecha.trim()}. Evidencia: ${form.evidencia}`,
+        missionType: 'OPERACIONAL',
+        minimumRankCode: 'RECRUTA',
+        genderEligibility: 'ALL',
+      };
+      
+      const res = await fetchApi('/admin/missions', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      
+      // Auto-publish for convenience
+      if (res && res.id) {
+        await fetchApi(`/admin/missions/${res.id}/publish`, {
+          method: 'POST'
+        });
+      }
 
-    setMisionesLocales((current) => [nuevaMision, ...current]);
-    setForm(initialForm);
+      fetchMissions();
+      setForm(initialForm);
+      setFeedback({ type: 'success', message: 'Misión creada y publicada correctamente.' });
+    } catch (error) {
+      console.error('Error creating mission:', error);
+      setFeedback({ type: 'error', message: error.message || 'Error al crear la misión.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const openMissionDetail = (mision) => {
@@ -230,14 +310,23 @@ const Misiones = () => {
           >
             Ver evidencias
           </button>
-          {!mision.apologetas.includes(apologetas[0]?.id) && (
-            <button
-              type="button"
-              onClick={() => autoAssignMission(mision.id)}
-              className="rounded-full bg-primary px-4 py-2 font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:opacity-90"
-            >
-              Autoasignarme
-            </button>
+          {!isAdmin && (
+            <div className="flex items-center gap-2">
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => setEvidenceFile(e.target.files[0])} 
+                className="text-[10px] w-36"
+              />
+              <button
+                type="button"
+                onClick={() => autoAssignMission(mision.id)}
+                className="rounded-full bg-primary px-4 py-2 font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:opacity-90"
+                title="Asignarse a esta misión subiendo la evidencia"
+              >
+                Asignarme y reportar
+              </button>
+            </div>
           )}
         </div>
         <button type="button" onClick={() => openMissionDetail(mision)} className="text-primary">
@@ -501,11 +590,18 @@ const Misiones = () => {
         </div>
       </div>
 
+      {feedback.message && (
+        <div className={`mt-4 rounded-2xl px-4 py-3 text-sm ${feedback.type === 'error' ? 'bg-error/10 text-error' : 'bg-[#2e7d32]/10 text-[#2e7d32]'}`}>
+          {feedback.message}
+        </div>
+      )}
+
       <button
         type="submit"
-        className="mt-6 w-full rounded-2xl bg-primary px-5 py-4 font-label text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_12px_30px_rgba(113,89,24,0.25)]"
+        disabled={isSubmitting}
+        className="mt-6 w-full rounded-2xl bg-primary px-5 py-4 font-label text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_12px_30px_rgba(113,89,24,0.25)] disabled:opacity-50"
       >
-        Guardar mision
+        {isSubmitting ? 'Guardando...' : 'Guardar mision'}
       </button>
     </form>
   );
@@ -569,7 +665,7 @@ const Misiones = () => {
             </article>
           </section>
 
-          {user.role !== 'SOLDADO_ACTIVE' && (
+          {isAdmin && (
             <section className="mt-6">{renderForm(true)}</section>
           )}
 
@@ -621,14 +717,14 @@ const Misiones = () => {
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsA9vxxIuSP7qNG1e99bXXi-5fFMtg83C45ejeEN0AP56SQTm_kmFT9-NJPL-fRJ9dbSzB7PXCHNEyeXrgzlBENs8oajQkFV5sVOnmPrG9IPtkmqYJF9tQMCtvqZFHACLprAUlENal-TockvP34u0U4NECCLbyBKv4EXczJ1pJxv8ArWR6jvKEifgjVOv0Xp1szkGrJPVApiKGw0gPYk6btrJBeovJwSundEl4zuc2JDbBVBE_mWCv7dkKRsOlAQtJoTuG54GL"
                 />
               </div>
-              <div>
-                <h2 className="font-headline text-lg font-bold leading-tight text-[#715918]">Padre Luis Toro</h2>
-                <p className="text-xs font-label uppercase tracking-widest opacity-60">Sacerdote</p>
+              <div className="flex flex-col justify-center">
+                <h2 className="font-headline text-base font-bold leading-tight text-[#715918]">{user.fullName || 'Usuario'}</h2>
+                <p className="text-[10px] font-label uppercase tracking-widest opacity-60">{isAdmin ? 'Administrador' : 'Soldado'}</p>
               </div>
             </div>
             <button 
               className="vatican-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium text-on-primary shadow-lg shadow-primary/10"
-              style={{ display: user.role === 'SOLDADO_ACTIVE' ? 'none' : 'flex' }}
+              style={{ display: isAdmin ? 'flex' : 'none' }}
             >
               <span className="material-symbols-outlined text-sm">add</span>
               <span className="font-label">Nueva Mision</span>
@@ -698,7 +794,7 @@ const Misiones = () => {
           <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-[#715918]/10 bg-[#faf9f5]/80 px-12 backdrop-blur-xl">
             <div className="flex items-center gap-4">
               <h1 className="font-headline text-xl font-bold tracking-tight text-[#715918]">
-                Plataforma Cruzada Apologetica Itinerante
+                Cruzada Apologetica Itinerante
               </h1>
             </div>
             <div className="flex items-center gap-6">
@@ -710,9 +806,19 @@ const Misiones = () => {
                 />
                 <span className="material-symbols-outlined absolute right-3 top-1.5 text-lg text-primary/40">search</span>
               </div>
-              <button className="transition-opacity hover:opacity-70">
-                <span className="material-symbols-outlined text-primary">notifications</span>
-              </button>
+              <div className="flex items-center gap-4 text-primary">
+                <button 
+                  onClick={() => navigate('/apologetas-pendientes')}
+                  className="relative transition-opacity hover:opacity-70"
+                >
+                  <span className="material-symbols-outlined text-primary">notifications</span>
+                  {pendingCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[9px] font-bold text-white">
+                      {pendingCount}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
           </header>
 
@@ -738,10 +844,10 @@ const Misiones = () => {
             </section>
 
             <section className="mt-10 grid grid-cols-[minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] gap-8">
-              {user.role !== 'SOLDADO_ACTIVE' && (
+              {isAdmin && (
                 <div>{renderForm()}</div>
               )}
-              <div className={`space-y-6 ${user.role === 'SOLDADO_ACTIVE' ? 'xl:col-span-2' : ''}`}>
+              <div className={`space-y-6 ${!isAdmin ? 'xl:col-span-2' : ''}`}>
                 <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
                   {misionesEnriquecidas.map((mision) => renderMissionCard(mision))}
                 </div>

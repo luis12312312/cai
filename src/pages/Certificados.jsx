@@ -24,10 +24,23 @@ const Certificados = () => {
     message: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
     fetchCertificates();
+    fetchPendingCount();
   }, []);
+
+  const fetchPendingCount = async () => {
+    try {
+      const data = await fetchApi('/admin/users?role=SOLDADO_PENDING&page=1&pageSize=1');
+      if (data && typeof data.total !== 'undefined') {
+        setPendingCount(data.total);
+      }
+    } catch (err) {
+      console.warn('Error fetching pending count', err);
+    }
+  };
 
   const fetchCertificates = async () => {
     try {
@@ -339,9 +352,9 @@ const Certificados = () => {
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsA9vxxIuSP7qNG1e99bXXi-5fFMtg83C45ejeEN0AP56SQTm_kmFT9-NJPL-fRJ9dbSzB7PXCHNEyeXrgzlBENs8oajQkFV5sVOnmPrG9IPtkmqYJF9tQMCtvqZFHACLprAUlENal-TockvP34u0U4NECCLbyBKv4EXczJ1pJxv8ArWR6jvKEifgjVOv0Xp1szkGrJPVApiKGw0gPYk6btrJBeovJwSundEl4zuc2JDbBVBE_mWCv7dkKRsOlAQtJoTuG54GL"
                 />
               </div>
-              <div>
-                <h2 className="font-headline text-lg font-bold leading-tight text-[#715918]">Padre Luis Toro</h2>
-                <p className="text-xs font-label uppercase tracking-widest opacity-60">Sacerdote</p>
+              <div className="flex flex-col justify-center">
+                <h2 className="font-headline text-base font-bold leading-tight text-[#715918]">{user.fullName || 'Usuario'}</h2>
+                <p className="text-[10px] font-label uppercase tracking-widest opacity-60">{isAdmin ? 'Administrador' : 'Soldado'}</p>
               </div>
             </div>
             <button
@@ -410,7 +423,7 @@ const Certificados = () => {
           <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-[#715918]/10 bg-[#faf9f5]/80 px-12 backdrop-blur-xl">
             <div className="flex items-center gap-4">
               <h1 className="font-headline text-xl font-bold tracking-tight text-[#715918]">
-                Plataforma Cruzada Apologetica Itinerante
+                Cruzada Apologetica Itinerante
               </h1>
             </div>
             <div className="flex items-center gap-6">
@@ -422,8 +435,16 @@ const Certificados = () => {
                 />
                 <span className="material-symbols-outlined absolute right-3 top-1.5 text-lg text-primary/40">search</span>
               </div>
-              <button className="transition-opacity hover:opacity-70">
+              <button 
+                onClick={() => navigate('/apologetas-pendientes')}
+                className="relative transition-opacity hover:opacity-70"
+              >
                 <span className="material-symbols-outlined text-primary">notifications</span>
+                {pendingCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[9px] font-bold text-white">
+                    {pendingCount}
+                  </span>
+                )}
               </button>
             </div>
           </header>

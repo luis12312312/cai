@@ -1,10 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-surface font-body text-on-surface;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 }
 
@@ -27,4 +34,69 @@
 
 .arch-mask {
   clip-path: ellipse(100% 100% at 50% 100%);
+}
+
+.cai-display {
+  font-family: 'Cinzel', Georgia, serif;
+  letter-spacing: 0.04em;
+}
+
+.cai-auth-shell {
+  background:
+    radial-gradient(circle at top, rgba(245, 210, 120, 0.12), transparent 28%),
+    radial-gradient(circle at 15% 20%, rgba(130, 24, 37, 0.2), transparent 24%),
+    radial-gradient(circle at 85% 15%, rgba(14, 35, 71, 0.35), transparent 26%),
+    linear-gradient(180deg, #090b12 0%, #0f1624 50%, #0d111a 100%);
+}
+
+.cai-overlay-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), transparent);
+}
+
+.cai-gold-line {
+  background: linear-gradient(90deg, transparent, rgba(232, 197, 110, 0.95), transparent);
+}
+
+.cai-panel {
+  background: linear-gradient(180deg, rgba(13, 19, 30, 0.88), rgba(8, 12, 21, 0.94));
+  border: 1px solid rgba(232, 197, 110, 0.16);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
+}
+
+.cai-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(232, 197, 110, 0.12);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.24);
+}
+
+.cai-button-primary {
+  background: linear-gradient(135deg, #8a1f2d 0%, #c89d45 100%);
+  box-shadow: 0 16px 30px rgba(138, 31, 45, 0.35);
+}
+
+.cai-button-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 38px rgba(138, 31, 45, 0.42);
+}
+
+.cai-button-secondary {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(232, 197, 110, 0.24);
+}
+
+.cai-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(232, 197, 110, 0.16);
+}
+
+.cai-input:focus {
+  border-color: rgba(232, 197, 110, 0.75);
+  box-shadow: 0 0 0 4px rgba(232, 197, 110, 0.12);
 }

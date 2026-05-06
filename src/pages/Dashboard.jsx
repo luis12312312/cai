@@ -1,20 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const mobileStats = [
-  {
-    title: 'Apologetas',
-    value: '148',
-    icon: 'shield',
-    iconColor: 'text-secondary',
-  },
-  {
-    title: 'Alertas sectas',
-    value: '03',
-    icon: 'flare',
-    iconColor: 'text-error',
-  },
-];
+import { fetchApi } from '../api';
 
 const mobileActivities = [
   {
@@ -60,41 +46,52 @@ const desktopActivities = [
   },
 ];
 
-const desktopStats = [
-  {
-    title: 'Misiones Activas',
-    value: '24',
-    icon: 'map',
-    iconColor: 'text-primary',
-    bg: 'bg-primary/5',
-    note: '+2 este mes',
-    noteColor: 'text-[#2e7d32]',
-  },
-  {
-    title: 'Apologetas Registrados',
-    value: '158',
-    icon: 'groups',
-    iconColor: 'text-secondary',
-    bg: 'bg-secondary/5',
-    note: 'Cuerpo Academico',
-    noteColor: 'text-on-surface-variant opacity-60',
-  },
-  {
-    title: 'Alertas de Sectas',
-    value: '09',
-    icon: 'warning',
-    iconColor: 'text-error',
-    bg: 'bg-error/5',
-    badge: 'Critico',
-  },
-];
-
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [overview, setOverview] = useState(null);
+  const [progress, setProgress] = useState(null);
+  const [history, setHistory] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (isAdmin) {
+          const [data, pendingUsers] = await Promise.all([
+            fetchApi('/admin/operational-overview'),
+            fetchApi('/admin/users?role=SOLDADO_PENDING&page=1&pageSize=1') // Solo para traer el count
+          ]);
+          setOverview(data);
+          if (pendingUsers && typeof pendingUsers.total !== 'undefined') {
+            setPendingCount(pendingUsers.total);
+          } else if (data && data.certificateReviewRequests) {
+            setPendingCount(data.certificateReviewRequests.pendingCount || 0);
+          }
+        } else if (user.role === 'SOLDADO_ACTIVE') {
+          const [prog, hist] = await Promise.all([
+            fetchApi('/progress'),
+            fetchApi('/mission-history')
+          ]);
+          setProgress(prog);
+          setHistory(hist);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [isAdmin, user.role]);
 
   const handleLogout = (e) => {
     e.preventDefault();
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/login');
   };
 
@@ -104,52 +101,104 @@ const Dashboard = () => {
   const goToCertificados = () => navigate('/certificados');
   const goToSectas = () => navigate('/sectas');
 
+  const getDesktopStats = () => {
+    if (isAdmin && overview) {
+      return [
+        {
+          title: 'Apologetas Pendientes',
+          value: pendingCount || 0,
+          icon: 'how_to_reg',
+          iconColor: 'text-primary',
+          bg: 'bg-primary/5',
+          action: () => navigate('/apologetas-pendientes')
+        },
+        {
+          title: 'Misiones por Revisar',
+          value: overview.missionSubmissions?.pendingCount || 0,
+          icon: 'menu_book',
+          iconColor: 'text-secondary',
+          bg: 'bg-secondary/5',
+        },
+        {
+          title: 'Alertas de Sectas',
+          value: overview.sectReports?.pendingCount || 0,
+          icon: 'warning',
+          iconColor: 'text-error',
+          bg: 'bg-error/5',
+          badge: 'Critico',
+        },
+      ];
+    } else if (!isAdmin && progress && history) {
+      return [
+        {
+          title: 'Misiones Completadas',
+          value: history.completedMissionTotal || 0,
+          icon: 'task_alt',
+          iconColor: 'text-primary',
+          bg: 'bg-primary/5',
+        },
+        {
+          title: 'Rango Actual',
+          value: progress.rankCode || 'Recluta',
+          icon: 'military_tech',
+          iconColor: 'text-secondary',
+          bg: 'bg-secondary/5',
+        },
+        {
+          title: 'Badges / Peso',
+          value: `${progress.earnedBadgeCount || 0} / ${progress.totalBadgeWeight || 0}`,
+          icon: 'workspace_premium',
+          iconColor: 'text-error',
+          bg: 'bg-error/5',
+        },
+      ];
+    }
+    return [];
+  };
+
+  const desktopStats = getDesktopStats();
+  const mobileStats = desktopStats.slice(0, 2);
+
   return (
     <div className="min-h-screen bg-surface text-on-background">
       <div className="md:hidden">
         <main className="mx-auto min-h-screen max-w-sm px-5 pb-32 pt-5">
           <header className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/10 bg-surface-container-low shadow-sm">
-                <span
-                  className="material-symbols-outlined text-primary"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/10 bg-surface-container-low shadow-sm">
+                <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
                   shield_person
                 </span>
               </div>
-              <div>
-                <p className="font-headline text-[1.45rem] font-bold leading-tight text-primary">
-                  Plataforma Cruzada Apologetica Itinerante
-                </p>
-              </div>
+              <p className="font-headline text-xl font-bold leading-tight text-primary">
+                CAI
+              </p>
             </div>
-            <button className="flex h-10 w-10 items-center justify-center rounded-full text-primary">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
-          </header>
-
-          <section className="mt-5 flex items-center justify-between rounded-[1.6rem] bg-surface-container-low px-4 py-4 shadow-[0_8px_24px_rgba(26,28,26,0.05)]">
+            
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 overflow-hidden rounded-full border border-primary/20">
-                <img
-                  alt="Insignia"
-                  className="h-full w-full object-cover"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsA9vxxIuSP7qNG1e99bXXi-5fFMtg83C45ejeEN0AP56SQTm_kmFT9-NJPL-fRJ9dbSzB7PXCHNEyeXrgzlBENs8oajQkFV5sVOnmPrG9IPtkmqYJF9tQMCtvqZFHACLprAUlENal-TockvP34u0U4NECCLbyBKv4EXczJ1pJxv8ArWR6jvKEifgjVOv0Xp1szkGrJPVApiKGw0gPYk6btrJBeovJwSundEl4zuc2JDbBVBE_mWCv7dkKRsOlAQtJoTuG54GL"
-                />
+              <div className="text-right flex flex-col justify-center">
+                <p className="font-headline text-sm font-bold text-primary leading-none">{user.fullName || 'Usuario'}</p>
+                <p className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant mt-1">{isAdmin ? 'Administrador' : 'Soldado'}</p>
               </div>
-              <div>
-                <p className="font-headline text-lg font-bold leading-tight text-primary">Padre Luis Toro</p>
-                <p className="text-xs font-label uppercase tracking-widest text-on-surface-variant">Sacerdote</p>
-              </div>
+              <button 
+                onClick={() => navigate('/apologetas-pendientes')} 
+                className="relative flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low text-primary"
+              >
+                <span className="material-symbols-outlined text-sm">notifications</span>
+                {pendingCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-error text-[8px] font-bold text-white">
+                    {pendingCount}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-error/10 text-error"
+              >
+                <span className="material-symbols-outlined text-sm">logout</span>
+              </button>
             </div>
-            <button
-              onClick={handleLogout}
-              className="rounded-full border border-error/20 bg-error/10 px-3 py-2 font-label text-[10px] uppercase tracking-[0.16em] text-error"
-            >
-              Cerrar sesion
-            </button>
-          </section>
+          </header>
 
           <section className="mt-8">
             <p className="font-label text-[10px] uppercase tracking-[0.35em] text-on-surface-variant">PAX ET BONUM</p>
@@ -166,7 +215,6 @@ const Dashboard = () => {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <span className="material-symbols-outlined">menu_book</span>
               </div>
-              <span className="material-symbols-outlined text-[5.5rem] leading-none text-primary/10">church</span>
             </div>
             <div className="-mt-4">
               <p className="font-label text-xs uppercase tracking-[0.22em] text-on-surface-variant">Misiones activas</p>
@@ -283,9 +331,9 @@ const Dashboard = () => {
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsA9vxxIuSP7qNG1e99bXXi-5fFMtg83C45ejeEN0AP56SQTm_kmFT9-NJPL-fRJ9dbSzB7PXCHNEyeXrgzlBENs8oajQkFV5sVOnmPrG9IPtkmqYJF9tQMCtvqZFHACLprAUlENal-TockvP34u0U4NECCLbyBKv4EXczJ1pJxv8ArWR6jvKEifgjVOv0Xp1szkGrJPVApiKGw0gPYk6btrJBeovJwSundEl4zuc2JDbBVBE_mWCv7dkKRsOlAQtJoTuG54GL"
                 />
               </div>
-              <div>
-                <h2 className="font-headline text-lg font-bold leading-tight text-[#715918]">Padre Luis Toro</h2>
-                <p className="text-xs font-label uppercase tracking-widest opacity-60">Sacerdote</p>
+              <div className="flex flex-col justify-center">
+                <h2 className="font-headline text-base font-bold leading-tight text-[#715918]">{user.fullName || 'Usuario'}</h2>
+                <p className="text-[10px] font-label uppercase tracking-widest opacity-60">{isAdmin ? 'Administrador' : 'Soldado'}</p>
               </div>
             </div>
             <button className="vatican-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium text-on-primary shadow-lg shadow-primary/10 transition-transform hover:scale-[1.02] active:scale-[0.98]">
@@ -351,7 +399,7 @@ const Dashboard = () => {
           <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-[#715918]/10 bg-[#faf9f5]/80 px-12 backdrop-blur-xl">
             <div className="flex items-center gap-4">
               <h1 className="font-headline text-xl font-bold tracking-tight text-[#715918]">
-                Plataforma Cruzada Apologetica Itinerante
+                Cruzada Apologetica Itinerante
               </h1>
             </div>
             <div className="flex items-center gap-6">
@@ -364,19 +412,17 @@ const Dashboard = () => {
                 <span className="material-symbols-outlined absolute right-3 top-1.5 text-lg text-primary/40">search</span>
               </div>
               <div className="flex items-center gap-4 text-primary">
-                <button className="transition-opacity hover:opacity-70">
+                <button 
+                  onClick={() => navigate('/apologetas-pendientes')}
+                  className="relative transition-opacity hover:opacity-70"
+                >
                   <span className="material-symbols-outlined">notifications</span>
+                  {pendingCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[9px] font-bold text-white">
+                      {pendingCount}
+                    </span>
+                  )}
                 </button>
-                <button className="transition-opacity hover:opacity-70">
-                  <span className="material-symbols-outlined">church</span>
-                </button>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full border border-secondary/10 bg-secondary-container/20">
-                  <img
-                    alt="Padre Luis Toro profile"
-                    className="h-full w-full rounded-full object-cover"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4FPW5a5r2emMl-FP0G6anRID7uZKA82HEHefYctG5RS-JpV6n3uxzl-8WPyjlYC9DzyWSMx-xeb9bHOFCG6yYvx0Vz8wS4M7UkVK0xODhoLKc7_WRq8nXNucuDXP6xWWEYNetgg_O1UB671Hm0REOGXtESY4fkT7SqFdLn_rO-ff1F1sJ9IyIqyEli4dFk6xgCNw6R9coWJBmK28V3PkkVD178YXiwyVNBvacOwEBADcLaz_F1V6v3Ahrf_lg9_3KJK-qRrwv"
-                  />
-                </div>
               </div>
             </div>
           </header>
@@ -386,7 +432,7 @@ const Dashboard = () => {
               <div className="max-w-2xl">
                 <h2 className="font-headline text-5xl font-bold leading-tight text-on-surface">Estado de la Defensa de la Fe</h2>
                 <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-                  Bienvenido, Padre Luis Toro. El despliegue itinerante se mantiene activo en 14 diocesis. El rigor academico y
+                  Bienvenido, {user.fullName || 'Usuario'}. El despliegue itinerante se mantiene activo en 14 diocesis. El rigor academico y
                   la caridad pastoral guian nuestra mision.
                 </p>
               </div>
@@ -400,7 +446,8 @@ const Dashboard = () => {
               {desktopStats.map((stat) => (
                 <article
                   key={stat.title}
-                  className="group flex h-64 flex-col justify-between rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-8 transition-all duration-300 hover:border-primary/20"
+                  onClick={stat.action ? stat.action : undefined}
+                  className={`group flex h-64 flex-col justify-between rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-8 transition-all duration-300 hover:border-primary/20 ${stat.action ? 'cursor-pointer hover:shadow-md' : ''}`}
                 >
                   <div className="flex items-start justify-between">
                     <div className={`rounded-lg p-3 ${stat.bg} ${stat.iconColor}`}>

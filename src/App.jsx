@@ -3,9 +3,11 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Apologetas from './pages/Apologetas';
+import ApologetasPendientes from './pages/ApologetasPendientes';
 import Certificados from './pages/Certificados';
 import Misiones from './pages/Misiones';
 import Sectas from './pages/Sectas';
+import PendingApproval from './pages/PendingApproval';
 
 const PrivateRoute = ({ children, requireAdmin = false }) => {
   const token = localStorage.getItem('token');
@@ -15,7 +17,11 @@ const PrivateRoute = ({ children, requireAdmin = false }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (requireAdmin && user.role === 'SOLDADO_ACTIVE') {
+  if (user.role === 'SOLDADO_PENDING') {
+    return <Navigate to="/pending" replace />;
+  }
+
+  if (requireAdmin && user.role !== 'SUPER_ADMIN' && user.role !== 'REGISTRADOR') {
     return <Navigate to="/misiones" replace />;
   }
 
@@ -27,6 +33,9 @@ const PublicRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   
   if (token) {
+    if (user.role === 'SOLDADO_PENDING') {
+      return <Navigate to="/pending" replace />;
+    }
     if (user.role === 'SOLDADO_ACTIVE') {
       return <Navigate to="/misiones" replace />;
     }
@@ -57,6 +66,12 @@ function App() {
           }
         />
         <Route
+          path="/pending"
+          element={
+            <PendingApproval />
+          }
+        />
+        <Route
           path="/dashboard"
           element={
             <PrivateRoute requireAdmin={true}>
@@ -69,6 +84,14 @@ function App() {
           element={
             <PrivateRoute requireAdmin={true}>
               <Apologetas />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/apologetas-pendientes"
+          element={
+            <PrivateRoute requireAdmin={true}>
+              <ApologetasPendientes />
             </PrivateRoute>
           }
         />
