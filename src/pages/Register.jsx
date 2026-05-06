@@ -7,6 +7,7 @@ const Register = () => {
   const [hasId, setHasId] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -89,41 +90,18 @@ const Register = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-[#05070c] via-[#05070c]/50 to-[#05070c]/90" />
       </div>
 
-      <header className="fixed inset-x-0 top-0 z-30">
-        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-          <div className="cai-panel rounded-full px-4 py-3 sm:px-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[0.65rem] uppercase tracking-[0.38em] text-[#d8c08b]">CAI</p>
-                <h1 className="cai-display text-sm font-semibold text-white sm:text-base">
-                  Cruzada Apologetica Itinerante
-                </h1>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate('/login')}
-                  className="rounded-full border border-[#d8c08b]/30 px-4 py-2 text-sm text-white transition-colors hover:border-[#d8c08b]/60 hover:bg-white/5"
-                >
-                  Volver al acceso
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="relative z-20 flex-grow flex items-center justify-center px-4 pt-24 pb-10 sm:px-6 lg:px-8">
+      <main className="relative z-20 flex-grow flex items-center justify-center px-4 pt-10 pb-10 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <div className="cai-panel rounded-[2rem] p-6 sm:p-8">
             <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-6">
-              <div className="text-center">
-                <span className="material-symbols-outlined text-4xl text-[#d8c08b] mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>how_to_reg</span>
-                <p className="text-[0.68rem] uppercase tracking-[0.32em] text-[#d8c08b]">Incorporacion</p>
-                <h2 className="cai-display mt-3 text-3xl font-semibold text-white">Registro</h2>
+              <div className="text-center mb-6">
+                <div className="flex justify-center mb-4">
+                  <img src="/images/Logo.png" alt="CAI Logo" className="h-24 w-auto object-contain" />
+                </div>
+                <h2 className="cai-display text-3xl font-semibold text-white">Registro</h2>
               </div>
 
-              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <form onSubmit={handleSubmit} className="mt-6 space-y-5">
                 {error && (
                   <div className="rounded-2xl border border-[#cf5d67]/30 bg-[#5f1620]/30 px-4 py-3 text-sm text-[#ffd8dc]">
                     {error}
@@ -205,17 +183,29 @@ const Register = () => {
                   <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70" htmlFor="password">
                     Contrasena
                   </label>
-                  <input
-                    className="cai-input w-full rounded-2xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-white/30"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Minimo 8 caracteres"
-                    required
-                    minLength={8}
-                    type="password"
-                  />
+                  <div className="relative">
+                    <input
+                      className="cai-input w-full rounded-2xl px-4 py-3.5 pr-12 text-sm text-white outline-none transition-all placeholder:text-white/30"
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Minimo 8 caracteres"
+                      required
+                      minLength={8}
+                      type={showPassword ? 'text' : 'password'}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+                      title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    >
+                      <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 0" }}>
+                        {showPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 {hasId ? (

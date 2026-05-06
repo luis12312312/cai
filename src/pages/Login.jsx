@@ -7,6 +7,7 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -57,35 +58,14 @@ const Login = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-[#05070c] via-[#05070c]/50 to-[#05070c]/90" />
       </div>
 
-      <header className="fixed inset-x-0 top-0 z-30">
-        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-          <div className="cai-panel rounded-full px-4 py-3 sm:px-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[0.65rem] uppercase tracking-[0.38em] text-[#d8c08b]">CAI</p>
-                <h1 className="cai-display text-sm font-semibold text-white sm:text-base">
-                  Cruzada Apologetica Itinerante
-                </h1>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/register')}
-                className="rounded-full border border-[#d8c08b]/30 px-4 py-2 text-sm text-white transition-colors hover:border-[#d8c08b]/60 hover:bg-white/5"
-              >
-                Registrarse
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="relative z-20 flex-grow flex items-center justify-center px-4 pt-24 pb-10 sm:px-6 lg:px-8">
+      <main className="relative z-20 flex-grow flex items-center justify-center px-4 pt-10 pb-10 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <div className="cai-panel rounded-[2rem] p-6 sm:p-8">
             <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-6 text-center">
-              <span className="material-symbols-outlined text-4xl text-[#d8c08b] mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>shield_person</span>
-              <p className="text-[0.68rem] uppercase tracking-[0.32em] text-[#d8c08b]">Acceso seguro</p>
-              <h3 className="cai-display mt-3 text-3xl font-semibold text-white">Ingresar</h3>
+              <div className="flex justify-center mb-4">
+                <img src="/images/Logo.png" alt="CAI Logo" className="h-24 w-auto object-contain" />
+              </div>
+              <h3 className="cai-display mt-2 text-3xl font-semibold text-white">Ingresar</h3>
 
               <form onSubmit={handleSubmit} className="mt-8 text-left space-y-5">
                 {error && (
@@ -116,19 +96,31 @@ const Login = () => {
                       Contrasena
                     </label>
                   </div>
-                  <input
-                    className="cai-input w-full rounded-2xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-white/30"
-                    id="password"
-                    name="password"
-                    placeholder="Ingrese su contrasena"
-                    required
-                    type="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
+                  <div className="relative">
+                    <input
+                      className="cai-input w-full rounded-2xl px-4 py-3.5 pr-12 text-sm text-white outline-none transition-all placeholder:text-white/30"
+                      id="password"
+                      name="password"
+                      placeholder="Ingrese su contrasena"
+                      required
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={handleChange}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+                      title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    >
+                      <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 0" }}>
+                        {showPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-black/10 px-4 py-3">
+                <div className="flex items-center justify-center gap-3 rounded-2xl border border-white/8 bg-black/10 px-4 py-3">
                   <label className="flex items-center gap-3 text-sm text-white/72" htmlFor="remember">
                     <input
                       className="h-4 w-4 rounded border-white/20 bg-transparent text-[#d8c08b] focus:ring-[#d8c08b]/25"
@@ -136,14 +128,8 @@ const Login = () => {
                       name="remember"
                       type="checkbox"
                     />
-                    Mantener sesion
+                    Mantener sesion iniciada
                   </label>
-                  <button
-                    type="button"
-                    className="text-xs uppercase tracking-[0.24em] text-[#d8c08b]/80 transition-colors hover:text-[#d8c08b]"
-                  >
-                    Soporte
-                  </button>
                 </div>
 
                 <button
