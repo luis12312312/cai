@@ -265,73 +265,70 @@ const Misiones = () => {
   };
 
   const renderMissionCard = (mision) => (
-    <article key={mision.id} className="rounded-[1.5rem] bg-surface-container-lowest p-5 shadow-[0_10px_30px_rgba(26,28,26,0.05)]">
-      <div className="flex items-start justify-between gap-4">
+    <article key={mision.id} className="cai-card rounded-2xl p-5 border border-white/5 relative overflow-hidden group">
+      <div className="flex items-start justify-between gap-4 relative z-10">
         <div>
-          <h3 className="font-headline text-[2rem] leading-[1.02] text-on-surface">{mision.titulo}</h3>
-          <p className="mt-2 text-sm font-semibold uppercase tracking-[0.08em] text-secondary">{mision.tipo}</p>
+          <h3 className="cai-display text-2xl text-white group-hover:text-[#d8c08b] transition-colors">{mision.titulo}</h3>
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-[#cf5d67]">{mision.tipo}</p>
         </div>
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <span className="material-symbols-outlined">map</span>
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[#d8c08b]">
+          <span className="material-symbols-outlined text-xl">map</span>
         </div>
       </div>
 
-      <p className="mt-4 text-sm leading-6 text-on-surface-variant">{mision.resumen}</p>
+      <p className="mt-4 text-sm leading-relaxed text-white/70 relative z-10">{mision.resumen}</p>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <span className="rounded-full bg-surface-container-low px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
+      <div className="mt-4 flex flex-wrap gap-2 relative z-10">
+        <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[9px] uppercase tracking-widest text-white/60">
           {mision.lugar}
         </span>
-        <span className="rounded-full bg-surface-container-low px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">
+        <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[9px] uppercase tracking-widest text-white/60">
           {mision.fecha}
         </span>
-        <span className="rounded-full bg-surface-container-low px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
+        <span className="rounded-full border border-[#d8c08b]/20 bg-[#d8c08b]/10 px-3 py-1 text-[9px] uppercase tracking-widest text-[#d8c08b]">
           {mision.evidencia}
         </span>
       </div>
 
-      <div className="mt-5">
-        <p className="font-label text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Apologetas asignados</p>
+      <div className="mt-5 relative z-10">
+        <p className="text-[9px] uppercase tracking-widest text-white/40">Apologetas asignados</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {mision.nombresApologetas.map((nombre) => (
-            <span key={nombre} className="rounded-full bg-primary/8 px-3 py-1 font-label text-[10px] uppercase tracking-[0.16em] text-primary">
+            <span key={nombre} className="rounded-full bg-white/5 px-3 py-1 text-[9px] uppercase tracking-widest text-white/80">
               {nombre}
             </span>
           ))}
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between border-t border-outline-variant/20 pt-4">
+      <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 relative z-10">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => openMissionDetail(mision)}
-            className="rounded-full border border-primary/20 px-4 py-2 font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/5"
+            className="rounded-full border border-[#d8c08b]/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-[#d8c08b] transition-colors hover:bg-[#d8c08b]/10"
           >
             Ver evidencias
           </button>
           {!isAdmin && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-2">
               <input 
                 type="file" 
                 accept="image/*" 
                 onChange={(e) => setEvidenceFile(e.target.files[0])} 
-                className="text-[10px] w-36"
+                className="text-[10px] text-white/50 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:uppercase file:tracking-widest file:bg-white/5 file:text-white/80"
               />
               <button
                 type="button"
                 onClick={() => autoAssignMission(mision.id)}
-                className="rounded-full bg-primary px-4 py-2 font-label text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:opacity-90"
+                className="cai-button-primary rounded-full px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
                 title="Asignarse a esta misión subiendo la evidencia"
               >
-                Asignarme y reportar
+                Reportar
               </button>
             </div>
           )}
         </div>
-        <button type="button" onClick={() => openMissionDetail(mision)} className="text-primary">
-          <span className="material-symbols-outlined">arrow_forward</span>
-        </button>
       </div>
     </article>
   );
@@ -607,255 +604,46 @@ const Misiones = () => {
   );
 
   return (
-    <div className="min-h-screen bg-surface text-on-background">
+    <div className="space-y-8 animate-in fade-in duration-500">
       {renderMissionDetail()}
-      <div className="md:hidden">
-        <main className="mx-auto max-w-sm px-5 pb-32 pt-5">
-          <header className="flex items-center justify-between">
-            <div>
-              <p className="font-label text-[10px] uppercase tracking-[0.35em] text-secondary">MISIONES ACTIVAS</p>
-              <h1 className="mt-3 max-w-[15rem] font-headline text-[2.75rem] leading-[0.98] text-on-surface">
-                Modulo de
-                <br />
-                Misiones
-              </h1>
-            </div>
-            <button
-              onClick={goToDashboard}
-              className={`flex h-10 w-10 items-center justify-center rounded-full border border-primary/10 bg-surface-container-low text-primary ${user.role === 'SOLDADO_ACTIVE' ? 'invisible' : ''}`}
-            >
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
-          </header>
+      <header className="flex flex-col gap-2">
+        <p className="text-[10px] uppercase tracking-[0.35em] text-[#cf5d67] font-semibold">Misiones Activas</p>
+        <h1 className="cai-display text-3xl md:text-5xl text-white">
+          Módulo de <span className="italic text-[#d8c08b]">Misiones</span>
+        </h1>
+        <div className="h-0.5 w-16 bg-gradient-to-r from-[#cf5d67] to-[#d8c08b] mt-2"></div>
+      </header>
 
-          <section className="mt-5 flex items-center justify-between rounded-[1.6rem] bg-surface-container-low px-4 py-4 shadow-[0_8px_24px_rgba(26,28,26,0.05)]">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 overflow-hidden rounded-full border border-primary/20">
-                <img
-                  alt="Insignia"
-                  className="h-full w-full object-cover"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsA9vxxIuSP7qNG1e99bXXi-5fFMtg83C45ejeEN0AP56SQTm_kmFT9-NJPL-fRJ9dbSzB7PXCHNEyeXrgzlBENs8oajQkFV5sVOnmPrG9IPtkmqYJF9tQMCtvqZFHACLprAUlENal-TockvP34u0U4NECCLbyBKv4EXczJ1pJxv8ArWR6jvKEifgjVOv0Xp1szkGrJPVApiKGw0gPYk6btrJBeovJwSundEl4zuc2JDbBVBE_mWCv7dkKRsOlAQtJoTuG54GL"
-                />
-              </div>
-              <div>
-                <p className="font-headline text-lg font-bold leading-tight text-primary">Padre Luis Toro</p>
-                <p className="text-xs font-label uppercase tracking-widest text-on-surface-variant">Sacerdote</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="rounded-full border border-error/20 bg-error/10 px-3 py-2 font-label text-[10px] uppercase tracking-[0.16em] text-error"
-            >
-              Cerrar sesion
-            </button>
-          </section>
+      <p className="text-sm leading-relaxed text-white/70 max-w-2xl">
+        Administra las misiones, registra nuevas salidas y asigna varios apologetas en un mismo frente pastoral.
+      </p>
 
-          <p className="mt-5 text-sm leading-6 text-on-surface-variant">
-            Administra las misiones, registra nuevas salidas y asigna varios apologetas en un mismo frente pastoral.
-          </p>
-
-          <section className="mt-6 grid grid-cols-2 gap-4">
-            <article className="rounded-2xl bg-surface-container-low px-5 py-4 shadow-[0_8px_24px_rgba(26,28,26,0.05)]">
-              <p className="font-headline text-4xl leading-none text-primary">{misionesEnriquecidas.length}</p>
-              <p className="mt-2 font-label text-[11px] uppercase tracking-[0.18em] text-on-surface-variant">Misiones</p>
-            </article>
-            <article className="rounded-2xl bg-surface-container-low px-5 py-4 shadow-[0_8px_24px_rgba(26,28,26,0.05)]">
-              <p className="font-headline text-4xl leading-none text-primary">{apologetas.length}</p>
-              <p className="mt-2 font-label text-[11px] uppercase tracking-[0.18em] text-on-surface-variant">Apologetas</p>
-            </article>
-          </section>
-
-          {isAdmin && (
-            <section className="mt-6">{renderForm(true)}</section>
-          )}
-
-          <section className="mt-6 space-y-4">
-            {misionesEnriquecidas.map((mision) => renderMissionCard(mision))}
-          </section>
-        </main>
-
-        <nav className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 overflow-hidden rounded-[2rem] bg-surface-container-low shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
-          <div
-            className="flex items-center justify-start gap-6 overflow-x-auto px-6 py-4"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            <style>{`.flex::-webkit-scrollbar { display: none; }`}</style>
-            {[
-              { label: 'Inicio', icon: 'dashboard', active: false, action: goToDashboard, hidden: user.role === 'SOLDADO_ACTIVE' },
-              { label: 'Misiones', icon: 'menu_book', active: true, action: goToMisiones },
-              { label: 'Apolog.', icon: 'shield', active: false, action: goToApologetas, hidden: user.role === 'SOLDADO_ACTIVE' },
-              { label: 'Certif.', icon: 'workspace_premium', active: false, action: goToCertificados, hidden: user.role === 'SOLDADO_ACTIVE' },
-              { label: 'Sectas', icon: 'flare', active: false, action: goToSectas },
-            ]
-              .filter((item) => !item.hidden)
-              .map((item) => (
-              <button key={item.label} onClick={item.action} className="flex min-w-[4rem] shrink-0 flex-col items-center gap-1">
-              <span className={`material-symbols-outlined text-xl ${item.active ? 'text-primary' : 'text-on-surface-variant/50'}`}>
-                {item.icon}
-              </span>
-              <span
-                className={`font-label text-[9px] uppercase tracking-[0.12em] ${
-                  item.active ? 'text-primary' : 'text-on-surface-variant/60'
-                }`}
-              >
-                {item.label}
-              </span>
-            </button>
-          ))}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <article className="cai-card rounded-2xl p-5 border border-white/5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-5">
+            <span className="material-symbols-outlined text-6xl text-[#d8c08b]">explore_nearby</span>
           </div>
-        </nav>
-      </div>
-
-      <div className="hidden md:block">
-        <aside className="fixed left-0 top-0 z-40 flex h-full w-72 flex-col border-r border-[#715918]/5 bg-[#faf9f5] px-4 py-8">
-          <div className="mb-10 px-4">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="h-12 w-12 overflow-hidden rounded-full border border-primary/20">
-                <img
-                  alt="Insignia"
-                  className="h-full w-full object-cover"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsA9vxxIuSP7qNG1e99bXXi-5fFMtg83C45ejeEN0AP56SQTm_kmFT9-NJPL-fRJ9dbSzB7PXCHNEyeXrgzlBENs8oajQkFV5sVOnmPrG9IPtkmqYJF9tQMCtvqZFHACLprAUlENal-TockvP34u0U4NECCLbyBKv4EXczJ1pJxv8ArWR6jvKEifgjVOv0Xp1szkGrJPVApiKGw0gPYk6btrJBeovJwSundEl4zuc2JDbBVBE_mWCv7dkKRsOlAQtJoTuG54GL"
-                />
-              </div>
-              <div className="flex flex-col justify-center">
-                <h2 className="font-headline text-base font-bold leading-tight text-[#715918]">{user.fullName || 'Usuario'}</h2>
-                <p className="text-[10px] font-label uppercase tracking-widest opacity-60">{isAdmin ? 'Administrador' : 'Soldado'}</p>
-              </div>
-            </div>
-            <button 
-              className="vatican-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium text-on-primary shadow-lg shadow-primary/10"
-              style={{ display: isAdmin ? 'flex' : 'none' }}
-            >
-              <span className="material-symbols-outlined text-sm">add</span>
-              <span className="font-label">Nueva Mision</span>
-            </button>
+          <p className="cai-display text-3xl text-[#d8c08b] relative z-10">{misionesLocales.length}</p>
+          <p className="mt-1 text-[9px] uppercase tracking-widest text-white/50 relative z-10">Total Misiones</p>
+        </article>
+        <article className="cai-card rounded-2xl p-5 border border-white/5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-5">
+            <span className="material-symbols-outlined text-6xl text-[#d8c08b]">shield</span>
           </div>
+          <p className="cai-display text-3xl text-[#d8c08b] relative z-10">{apologetas.length}</p>
+          <p className="mt-1 text-[9px] uppercase tracking-widest text-white/50 relative z-10">Apologetas</p>
+        </article>
+      </section>
 
-          <nav className="flex-1 space-y-2">
-            {user.role !== 'SOLDADO_ACTIVE' && (
-              <button
-                onClick={goToDashboard}
-                className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-              >
-                <span className="material-symbols-outlined">dashboard</span>
-                <span className="font-label">Dashboard</span>
-              </button>
-            )}
-            <button
-              onClick={goToMisiones}
-              className="flex w-full items-center gap-4 rounded-l-full bg-[#715918]/5 px-4 py-3 text-left font-bold text-[#715918] transition-all duration-300"
-            >
-              <span className="material-symbols-outlined">explore_nearby</span>
-              <span className="font-label">Misiones</span>
-            </button>
-            {user.role !== 'SOLDADO_ACTIVE' && (
-              <>
-                <button
-                  onClick={goToApologetas}
-                  className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-                >
-                  <span className="material-symbols-outlined">shield</span>
-                  <span className="font-label">Apologetas</span>
-                </button>
-                <button
-                  onClick={goToCertificados}
-                  className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-                >
-                  <span className="material-symbols-outlined">workspace_premium</span>
-                  <span className="font-label">Certificados</span>
-                </button>
-              </>
-            )}
-            <button
-              onClick={goToSectas}
-              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-            >
-              <span className="material-symbols-outlined">gavel</span>
-              <span className="font-label">Sectas</span>
-            </button>
-          </nav>
+      {isAdmin && (
+        <section className="mt-6">
+          {renderForm(true)}
+        </section>
+      )}
 
-          <div className="space-y-2 border-t border-primary/5 pt-6">
-            <a className="flex items-center gap-4 px-4 py-3 text-[#1a1c1a] opacity-60 transition-all hover:opacity-100" href="#">
-              <span className="material-symbols-outlined">settings</span>
-              <span className="font-label">Ajustes</span>
-            </a>
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center gap-4 px-4 py-3 text-error opacity-80 transition-all hover:opacity-100"
-            >
-              <span className="material-symbols-outlined">logout</span>
-              <span className="font-label">Cerrar Sesion</span>
-            </button>
-          </div>
-        </aside>
-
-        <main className="ml-72 min-h-screen">
-          <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-[#715918]/10 bg-[#faf9f5]/80 px-12 backdrop-blur-xl">
-            <div className="flex items-center gap-4">
-              <h1 className="font-headline text-xl font-bold tracking-tight text-[#715918]">
-                Cruzada Apologetica Itinerante
-              </h1>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="group relative">
-                <input
-                  className="w-64 rounded-full border-none bg-surface-container-low px-5 py-1.5 text-sm font-body transition-all focus:ring-1 focus:ring-primary/30"
-                  placeholder="Buscar mision..."
-                  type="text"
-                />
-                <span className="material-symbols-outlined absolute right-3 top-1.5 text-lg text-primary/40">search</span>
-              </div>
-              <div className="flex items-center gap-4 text-primary">
-                <button 
-                  onClick={() => navigate('/apologetas-pendientes')}
-                  className="relative transition-opacity hover:opacity-70"
-                >
-                  <span className="material-symbols-outlined text-primary">notifications</span>
-                  {pendingCount > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[9px] font-bold text-white">
-                      {pendingCount}
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
-          </header>
-
-          <div className="mx-auto max-w-7xl p-12">
-            <section className="flex items-end justify-between gap-10">
-              <div className="max-w-3xl">
-                <p className="font-label text-xs uppercase tracking-[0.28em] text-secondary">MISIONES ACTIVAS</p>
-                <h2 className="mt-3 font-headline text-7xl leading-[0.95] text-on-surface">Modulo de Misiones</h2>
-                <p className="mt-6 max-w-2xl text-xl leading-9 text-on-surface-variant">
-                  Registra salidas apostolicas, organiza frentes de trabajo y asigna una mision a varios apologetas.
-                </p>
-              </div>
-              <div className="flex min-w-[240px] gap-10 border-l border-outline-variant/40 pl-10">
-                <div>
-                  <p className="font-headline text-5xl leading-none text-primary">{misionesEnriquecidas.length}</p>
-                  <p className="mt-2 font-label text-xs uppercase tracking-[0.14em] text-on-surface-variant">Misiones</p>
-                </div>
-                <div>
-                  <p className="font-headline text-5xl leading-none text-primary">{apologetas.length}</p>
-                  <p className="mt-2 font-label text-xs uppercase tracking-[0.14em] text-on-surface-variant">Apologetas</p>
-                </div>
-              </div>
-            </section>
-
-            <section className="mt-10 grid grid-cols-[minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] gap-8">
-              {isAdmin && (
-                <div>{renderForm()}</div>
-              )}
-              <div className={`space-y-6 ${!isAdmin ? 'xl:col-span-2' : ''}`}>
-                <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                  {misionesEnriquecidas.map((mision) => renderMissionCard(mision))}
-                </div>
-              </div>
-            </section>
-          </div>
-        </main>
-      </div>
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {misionesEnriquecidas.map((mision) => renderMissionCard(mision))}
+      </section>
     </div>
   );
 };

@@ -12,23 +12,26 @@ const PendingApproval = () => {
   };
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 text-on-background">
-      <div className="max-w-md w-full bg-surface-container-low rounded-3xl p-8 shadow-lg text-center">
-        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <span className="material-symbols-outlined text-4xl text-primary">hourglass_empty</span>
+    <div className="min-h-screen bg-[#04060b] flex flex-col items-center justify-center p-6 text-white font-body relative overflow-hidden">
+      {/* Background accents */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#d8c08b]/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+      <div className="max-w-md w-full bg-black/40 border border-white/10 rounded-3xl p-10 text-center relative z-10 shadow-2xl backdrop-blur-sm animate-in fade-in zoom-in duration-700">
+        <div className="w-20 h-20 bg-[#d8c08b]/10 border border-[#d8c08b]/20 rounded-full flex items-center justify-center mx-auto mb-8">
+          <span className="material-symbols-outlined text-4xl text-[#d8c08b]">hourglass_empty</span>
         </div>
         
-        <h1 className="text-2xl font-headline text-on-surface mb-4">Aprobación Pendiente</h1>
+        <h1 className="text-3xl cai-display text-white mb-4">Aprobación Pendiente</h1>
         
-        <p className="text-sm text-on-surface-variant leading-relaxed mb-6">
-          Hola <strong>{user.fullName || user.username || 'Soldado'}</strong>, tu cuenta actualmente se encuentra en estado <strong>Pendiente</strong>. 
+        <p className="text-sm text-white/70 leading-relaxed mb-8">
+          Pax et Bonum <strong>{user.fullName || user.username || 'Soldado'}</strong>. Tu cuenta actualmente se encuentra en estado <strong className="text-[#cf5d67]">Pendiente</strong>. 
           <br /><br />
-          Para acceder a los módulos de la plataforma, un administrador debe revisar tu solicitud y validar tu certificado. Por favor, espera a que tu cuenta sea activada.
+          Para acceder al Santuario Digital, un administrador debe revisar tu solicitud y validar tus credenciales. Por favor, aguarda a que tu acceso sea concedido.
         </p>
 
         <button
           onClick={handleLogout}
-          className="w-full bg-primary text-white rounded-full py-3 px-6 font-label uppercase tracking-widest text-xs font-semibold hover:opacity-90 transition-opacity"
+          className="w-full bg-[#d8c08b] text-[#04060b] rounded-full py-3 px-6 text-[10px] uppercase tracking-widest font-bold hover:bg-white transition-colors"
         >
           Cerrar Sesión
         </button>

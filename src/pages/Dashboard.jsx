@@ -2,50 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../api';
 
-const mobileActivities = [
-  {
-    title: 'Nueva Tesis Defensiva',
-    description: 'Refutacion sobre el neo-gnosticismo contemporaneo publicada por el P. Julian.',
-    time: 'hace 2 horas',
-    icon: 'shield',
-    accent: 'bg-primary',
-  },
-  {
-    title: 'Mision Itinerante Iniciada',
-    description: 'El equipo Alfa ha llegado a la Diocesis de San Juan para la Cruzada de Verano.',
-    time: 'hace 5 horas',
-    icon: 'location_on',
-    accent: 'bg-secondary',
-  },
-];
-
-const desktopActivities = [
-  {
-    title: 'Nuevo Avistamiento: Gnosticismo Moderno',
-    description: 'Detectada actividad proselitista en la zona norte de Queretaro.',
-    time: 'Hace 2 horas',
-    icon: 'new_releases',
-    border: 'border-error',
-    iconColor: 'text-error',
-  },
-  {
-    title: 'Actualizacion de Expediente',
-    description: 'Fr. Carlos actualizo la ficha sobre neopaganismo en areas rurales.',
-    time: 'Hace 5 horas',
-    icon: 'assignment',
-    border: 'border-secondary',
-    iconColor: 'text-secondary',
-  },
-  {
-    title: 'Mision Completada',
-    description: 'Taller de apologetica en Parroquia de San Juan finalizado con exito.',
-    time: 'Ayer',
-    icon: 'verified',
-    border: 'border-primary',
-    iconColor: 'text-primary',
-  },
-];
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const [overview, setOverview] = useState(null);
@@ -63,13 +19,11 @@ const Dashboard = () => {
         if (isAdmin) {
           const [data, pendingUsers] = await Promise.all([
             fetchApi('/admin/operational-overview'),
-            fetchApi('/admin/users?role=SOLDADO_PENDING&page=1&pageSize=1') // Solo para traer el count
+            fetchApi('/admin/users?role=SOLDADO_PENDING&page=1&pageSize=1')
           ]);
           setOverview(data);
           if (pendingUsers && typeof pendingUsers.total !== 'undefined') {
             setPendingCount(pendingUsers.total);
-          } else if (data && data.certificateReviewRequests) {
-            setPendingCount(data.certificateReviewRequests.pendingCount || 0);
           }
         } else if (user.role === 'SOLDADO_ACTIVE') {
           const [prog, hist] = await Promise.all([
@@ -88,44 +42,28 @@ const Dashboard = () => {
     fetchData();
   }, [isAdmin, user.role]);
 
-  const handleLogout = (e) => {
-    e.preventDefault();
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
-
-  const goToDashboard = () => navigate('/dashboard');
-  const goToMisiones = () => navigate('/misiones');
-  const goToApologetas = () => navigate('/apologetas');
-  const goToCertificados = () => navigate('/certificados');
-  const goToSectas = () => navigate('/sectas');
-
-  const getDesktopStats = () => {
+  const getStats = () => {
     if (isAdmin && overview) {
       return [
         {
           title: 'Apologetas Pendientes',
           value: pendingCount || 0,
           icon: 'how_to_reg',
-          iconColor: 'text-primary',
-          bg: 'bg-primary/5',
+          color: 'text-[#d8c08b]',
           action: () => navigate('/apologetas-pendientes')
         },
         {
           title: 'Misiones por Revisar',
           value: overview.missionSubmissions?.pendingCount || 0,
           icon: 'menu_book',
-          iconColor: 'text-secondary',
-          bg: 'bg-secondary/5',
+          color: 'text-white',
         },
         {
           title: 'Alertas de Sectas',
           value: overview.sectReports?.pendingCount || 0,
           icon: 'warning',
-          iconColor: 'text-error',
-          bg: 'bg-error/5',
-          badge: 'Critico',
+          color: 'text-[#cf5d67]',
+          badge: 'Crítico',
         },
       ];
     } else if (!isAdmin && progress && history) {
@@ -134,410 +72,78 @@ const Dashboard = () => {
           title: 'Misiones Completadas',
           value: history.completedMissionTotal || 0,
           icon: 'task_alt',
-          iconColor: 'text-primary',
-          bg: 'bg-primary/5',
+          color: 'text-[#d8c08b]',
         },
         {
           title: 'Rango Actual',
           value: progress.rankCode || 'Recluta',
           icon: 'military_tech',
-          iconColor: 'text-secondary',
-          bg: 'bg-secondary/5',
+          color: 'text-white',
         },
         {
-          title: 'Badges / Peso',
-          value: `${progress.earnedBadgeCount || 0} / ${progress.totalBadgeWeight || 0}`,
+          title: 'Peso Total',
+          value: progress.totalBadgeWeight || 0,
           icon: 'workspace_premium',
-          iconColor: 'text-error',
-          bg: 'bg-error/5',
+          color: 'text-[#d8c08b]',
         },
       ];
     }
     return [];
   };
 
-  const desktopStats = getDesktopStats();
-  const mobileStats = desktopStats.slice(0, 2);
+  const stats = getStats();
 
   return (
-    <div className="min-h-screen bg-surface text-on-background">
-      <div className="md:hidden">
-        <main className="mx-auto min-h-screen max-w-sm px-5 pb-32 pt-5">
-          <header className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/10 bg-surface-container-low shadow-sm">
-                <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  shield_person
-                </span>
-              </div>
-              <p className="font-headline text-xl font-bold leading-tight text-primary">
-                CAI
-              </p>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <header className="flex flex-col gap-2">
+        <p className="text-[10px] uppercase tracking-[0.35em] text-[#d8c08b]/70 font-semibold">Pax et Bonum</p>
+        <h1 className="cai-display text-3xl md:text-5xl text-white">
+          Bienvenido a la <span className="italic text-[#d8c08b]">Cruzada Apologética Itinerante</span>
+        </h1>
+        <div className="h-0.5 w-16 bg-gradient-to-r from-[#cf5d67] to-[#d8c08b] mt-2"></div>
+      </header>
+
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {stats.map((stat) => (
+          <article
+            key={stat.title}
+            onClick={stat.action}
+            className={`cai-card rounded-2xl p-6 border border-white/5 relative overflow-hidden group ${stat.action ? 'cursor-pointer hover:border-[#d8c08b]/30 transition-colors' : ''}`}
+          >
+            <div className="absolute top-0 right-0 p-6 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
+              <span className={`material-symbols-outlined text-8xl ${stat.color}`}>{stat.icon}</span>
             </div>
             
-            <div className="flex items-center gap-3">
-              <div className="text-right flex flex-col justify-center">
-                <p className="font-headline text-sm font-bold text-primary leading-none">{user.fullName || 'Usuario'}</p>
-                <p className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant mt-1">{isAdmin ? 'Administrador' : 'Soldado'}</p>
-              </div>
-              <button 
-                onClick={() => navigate('/apologetas-pendientes')} 
-                className="relative flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low text-primary"
-              >
-                <span className="material-symbols-outlined text-sm">notifications</span>
-                {pendingCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-error text-[8px] font-bold text-white">
-                    {pendingCount}
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <span className={`material-symbols-outlined text-2xl ${stat.color}`}>{stat.icon}</span>
+                {stat.badge && (
+                  <span className="bg-[#cf5d67] text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full">
+                    {stat.badge}
                   </span>
                 )}
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-error/10 text-error"
-              >
-                <span className="material-symbols-outlined text-sm">logout</span>
-              </button>
+              </div>
+              <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-1">{stat.title}</p>
+              <p className={`cai-display text-4xl md:text-5xl ${stat.color}`}>{stat.value}</p>
             </div>
-          </header>
+          </article>
+        ))}
+      </section>
 
-          <section className="mt-8">
-            <p className="font-label text-[10px] uppercase tracking-[0.35em] text-on-surface-variant">PAX ET BONUM</p>
-            <h1 className="mt-4 font-headline text-[3rem] leading-[1.02] text-on-surface">
-              Bienvenido al
-              <br />
-              <span className="italic text-primary">Santuario Digital</span>
-            </h1>
-            <div className="mt-5 h-1 w-10 rounded-full bg-primary"></div>
-          </section>
-
-          <section className="mt-8 rounded-[1.9rem] bg-surface-container-low p-6 shadow-[0_10px_30px_rgba(26,28,26,0.06)]">
-            <div className="flex items-start justify-between">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <span className="material-symbols-outlined">menu_book</span>
-              </div>
-            </div>
-            <div className="-mt-4">
-              <p className="font-label text-xs uppercase tracking-[0.22em] text-on-surface-variant">Misiones activas</p>
-              <p className="mt-2 font-headline text-6xl leading-none text-primary">12</p>
-            </div>
-          </section>
-
-          <section className="mt-4 grid grid-cols-2 gap-4">
-            {mobileStats.map((item) => (
-              <article
-                key={item.title}
-                className="rounded-2xl bg-surface-container-lowest p-5 shadow-[0_8px_24px_rgba(26,28,26,0.05)]"
-              >
-                <span className={`material-symbols-outlined text-xl ${item.iconColor}`}>{item.icon}</span>
-                <p className={`mt-6 font-headline text-4xl leading-none ${item.iconColor}`}>{item.value}</p>
-                <p className="mt-2 font-label text-[11px] uppercase tracking-[0.2em] text-on-surface-variant">
-                  {item.title}
-                </p>
-              </article>
-            ))}
-          </section>
-
-          <section className="mt-8">
-            <div className="flex items-center justify-between">
-              <h2 className="font-headline text-4xl text-on-surface">Actividad Reciente</h2>
-              <button className="font-label text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                Ver todo
-              </button>
-            </div>
-
-            <div className="mt-5 space-y-4">
-              {mobileActivities.map((activity) => (
-                <article
-                  key={activity.title}
-                  className="rounded-2xl bg-surface-container-lowest p-4 shadow-[0_8px_24px_rgba(26,28,26,0.05)]"
-                >
-                  <div className="flex gap-4">
-                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white ${activity.accent}`}>
-                      <span className="material-symbols-outlined text-lg">{activity.icon}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-[1.05rem] font-semibold leading-snug text-on-surface">{activity.title}</h3>
-                      <p className="mt-1 text-sm leading-5 text-on-surface-variant">{activity.description}</p>
-                      <div className="mt-3 flex items-center gap-2 text-xs text-on-surface-variant">
-                        <span className="material-symbols-outlined text-sm">schedule</span>
-                        <span>{activity.time}</span>
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section
-            className="mt-6 overflow-hidden rounded-2xl"
-            style={{
-              backgroundImage:
-                "linear-gradient(0deg, rgba(0,0,0,0.66), rgba(0,0,0,0.18)), url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80')",
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
-            <div className="px-5 py-7 text-white">
-              <h3 className="max-w-[14rem] font-headline text-3xl leading-tight">Biblioteca de Doctrina</h3>
-              <p className="mt-2 max-w-[15rem] text-sm leading-5 text-white/90">
-                Accede a los manuscritos sagrados de la apologetica biblica y teologica.
-              </p>
-              <button className="mt-5 rounded-full border border-white/30 px-4 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
-                Consultar archivos
-              </button>
-            </div>
-          </section>
-        </main>
-
-        <nav className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 overflow-hidden rounded-[2rem] bg-surface-container-low shadow-[0_14px_35px_rgba(26,28,26,0.12)]">
-          <div
-            className="flex items-center justify-start gap-6 overflow-x-auto px-6 py-4"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            <style>{`.flex::-webkit-scrollbar { display: none; }`}</style>
-            {[
-              { label: 'Inicio', icon: 'dashboard', active: true, action: goToDashboard },
-              { label: 'Misiones', icon: 'menu_book', active: false, action: goToMisiones },
-              { label: 'Apolog.', icon: 'shield', active: false, action: goToApologetas },
-              { label: 'Certif.', icon: 'workspace_premium', active: false, action: goToCertificados },
-              { label: 'Sectas', icon: 'flare', active: false, action: goToSectas },
-            ].map((item) => (
-              <button key={item.label} onClick={item.action} className="flex min-w-[4rem] shrink-0 flex-col items-center gap-1">
-              <span className={`material-symbols-outlined text-xl ${item.active ? 'text-primary' : 'text-on-surface-variant/50'}`}>
-                {item.icon}
-              </span>
-              <span
-                className={`font-label text-[9px] uppercase tracking-[0.12em] ${
-                  item.active ? 'text-primary' : 'text-on-surface-variant/60'
-                }`}
-              >
-                {item.label}
-              </span>
-            </button>
-          ))}
-          </div>
-        </nav>
-      </div>
-
-      <div className="hidden md:block">
-        <aside className="fixed left-0 top-0 z-40 flex h-full w-72 flex-col border-r border-[#715918]/5 bg-[#faf9f5] px-4 py-8">
-          <div className="mb-10 px-4">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="h-12 w-12 overflow-hidden rounded-full border border-primary/20">
-                <img
-                  alt="Vatican Insignia"
-                  className="h-full w-full object-cover"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsA9vxxIuSP7qNG1e99bXXi-5fFMtg83C45ejeEN0AP56SQTm_kmFT9-NJPL-fRJ9dbSzB7PXCHNEyeXrgzlBENs8oajQkFV5sVOnmPrG9IPtkmqYJF9tQMCtvqZFHACLprAUlENal-TockvP34u0U4NECCLbyBKv4EXczJ1pJxv8ArWR6jvKEifgjVOv0Xp1szkGrJPVApiKGw0gPYk6btrJBeovJwSundEl4zuc2JDbBVBE_mWCv7dkKRsOlAQtJoTuG54GL"
-                />
-              </div>
-              <div className="flex flex-col justify-center">
-                <h2 className="font-headline text-base font-bold leading-tight text-[#715918]">{user.fullName || 'Usuario'}</h2>
-                <p className="text-[10px] font-label uppercase tracking-widest opacity-60">{isAdmin ? 'Administrador' : 'Soldado'}</p>
-              </div>
-            </div>
-            <button className="vatican-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium text-on-primary shadow-lg shadow-primary/10 transition-transform hover:scale-[1.02] active:scale-[0.98]">
-              <span className="material-symbols-outlined text-sm">add</span>
-              <span className="font-label">Nueva Mision</span>
-            </button>
-          </div>
-
-          <nav className="flex-1 space-y-2">
-            <button
-              onClick={goToDashboard}
-              className="flex w-full items-center gap-4 rounded-l-full bg-[#715918]/5 px-4 py-3 text-left font-bold text-[#715918] transition-all duration-300"
-            >
-              <span className="material-symbols-outlined">dashboard</span>
-              <span className="font-label">Dashboard</span>
-            </button>
-            <button
-              onClick={goToMisiones}
-              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-            >
-              <span className="material-symbols-outlined">explore_nearby</span>
-              <span className="font-label">Misiones</span>
-            </button>
-            <button
-              onClick={goToApologetas}
-              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-            >
-              <span className="material-symbols-outlined">shield</span>
-              <span className="font-label">Apologetas</span>
-            </button>
-            <button
-              onClick={goToCertificados}
-              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-            >
-              <span className="material-symbols-outlined">workspace_premium</span>
-              <span className="font-label">Certificados</span>
-            </button>
-            <button
-              onClick={goToSectas}
-              className="flex w-full items-center gap-4 rounded-l-full px-4 py-3 text-left text-[#1a1c1a] opacity-60 transition-all duration-300 hover:bg-[#715918]/10 hover:opacity-100"
-            >
-              <span className="material-symbols-outlined">gavel</span>
-              <span className="font-label">Sectas</span>
-            </button>
-          </nav>
-
-          <div className="space-y-2 border-t border-primary/5 pt-6">
-            <a className="flex items-center gap-4 px-4 py-3 text-[#1a1c1a] opacity-60 transition-all hover:opacity-100" href="#">
-              <span className="material-symbols-outlined">settings</span>
-              <span className="font-label">Ajustes</span>
-            </a>
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center gap-4 px-4 py-3 text-error opacity-80 transition-all hover:opacity-100"
-            >
-              <span className="material-symbols-outlined">logout</span>
-              <span className="font-label">Cerrar Sesion</span>
-            </button>
-          </div>
-        </aside>
-
-        <main className="ml-72 min-h-screen">
-          <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-[#715918]/10 bg-[#faf9f5]/80 px-12 backdrop-blur-xl">
-            <div className="flex items-center gap-4">
-              <h1 className="font-headline text-xl font-bold tracking-tight text-[#715918]">
-                Cruzada Apologetica Itinerante
-              </h1>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="group relative">
-                <input
-                  className="w-64 rounded-full border-none bg-surface-container-low px-5 py-1.5 text-sm font-body transition-all focus:ring-1 focus:ring-primary/30"
-                  placeholder="Buscar registros..."
-                  type="text"
-                />
-                <span className="material-symbols-outlined absolute right-3 top-1.5 text-lg text-primary/40">search</span>
-              </div>
-              <div className="flex items-center gap-4 text-primary">
-                <button 
-                  onClick={() => navigate('/apologetas-pendientes')}
-                  className="relative transition-opacity hover:opacity-70"
-                >
-                  <span className="material-symbols-outlined">notifications</span>
-                  {pendingCount > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[9px] font-bold text-white">
-                      {pendingCount}
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
-          </header>
-
-          <div className="mx-auto max-w-7xl space-y-12 p-12">
-            <section className="flex items-end justify-between">
-              <div className="max-w-2xl">
-                <h2 className="font-headline text-5xl font-bold leading-tight text-on-surface">Estado de la Defensa de la Fe</h2>
-                <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-                  Bienvenido, {user.fullName || 'Usuario'}. El despliegue itinerante se mantiene activo en 14 diocesis. El rigor academico y
-                  la caridad pastoral guian nuestra mision.
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="mb-1 text-xs font-label uppercase tracking-widest text-primary">Ultima actualizacion</p>
-                <p className="font-headline text-xl font-medium">12 de Octubre, 2023</p>
-              </div>
-            </section>
-
-            <section className="grid grid-cols-1 gap-8 xl:grid-cols-3">
-              {desktopStats.map((stat) => (
-                <article
-                  key={stat.title}
-                  onClick={stat.action ? stat.action : undefined}
-                  className={`group flex h-64 flex-col justify-between rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-8 transition-all duration-300 hover:border-primary/20 ${stat.action ? 'cursor-pointer hover:shadow-md' : ''}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className={`rounded-lg p-3 ${stat.bg} ${stat.iconColor}`}>
-                      <span className="material-symbols-outlined text-3xl">{stat.icon}</span>
-                    </div>
-                    {stat.badge ? (
-                      <span className="rounded-full bg-error px-2 py-1 text-[10px] font-bold uppercase tracking-tighter text-on-error">
-                        {stat.badge}
-                      </span>
-                    ) : (
-                      <span className={`text-xs font-label font-bold ${stat.noteColor}`}>{stat.note}</span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="mb-1 text-sm font-label uppercase tracking-widest text-on-surface-variant">{stat.title}</p>
-                    <h3 className={`font-headline text-5xl font-bold ${stat.iconColor}`}>{stat.value}</h3>
-                  </div>
-                </article>
-              ))}
-            </section>
-
-            <section className="grid grid-cols-1 gap-12 lg:grid-cols-5">
-              <div className="space-y-6 lg:col-span-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-headline text-2xl font-bold">Estado de las Misiones</h4>
-                  <button className="text-sm font-label text-primary underline decoration-primary/30 underline-offset-4">
-                    Ver reporte extendido
-                  </button>
-                </div>
-                <div className="relative flex aspect-video items-end justify-between gap-4 overflow-hidden rounded-xl border border-outline-variant/5 bg-surface-container-low p-10">
-                  {['CDMX', 'Gto.', 'Jal.', 'Pue.', 'Ver.'].map((city, index) => {
-                    const heights = ['h-24', 'h-40', 'h-56', 'h-32', 'h-44'];
-                    const containerHeights = ['h-32', 'h-48', 'h-64', 'h-40', 'h-56'];
-                    return (
-                      <div key={city} className="flex flex-1 flex-col items-center gap-4">
-                        <div className={`relative w-full rounded-t-full bg-primary/20 ${containerHeights[index]}`}>
-                          <div className={`absolute bottom-0 w-full rounded-t-full bg-primary transition-all duration-500 ${heights[index]}`}></div>
-                        </div>
-                        <span className="text-[10px] font-label uppercase tracking-tighter opacity-50">{city}</span>
-                      </div>
-                    );
-                  })}
-                  <div
-                    className="pointer-events-none absolute inset-0 opacity-[0.03]"
-                    style={{ backgroundImage: 'radial-gradient(circle, #715918 1px, transparent 1px)', backgroundSize: '24px 24px' }}
-                  ></div>
-                </div>
-              </div>
-
-              <div className="space-y-6 lg:col-span-2">
-                <h4 className="font-headline text-2xl font-bold">Actividad de Sectas</h4>
-                <div className="space-y-4">
-                  {desktopActivities.map((activity) => (
-                    <article key={activity.title} className={`flex items-start gap-4 rounded-xl border-l-4 bg-surface-container-lowest p-5 ${activity.border}`}>
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-container-high">
-                        <span className={`material-symbols-outlined ${activity.iconColor}`}>{activity.icon}</span>
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-bold">{activity.title}</h5>
-                        <p className="mt-1 text-xs text-on-surface-variant">{activity.description}</p>
-                        <span className="mt-2 block text-[10px] font-label uppercase text-on-surface-variant opacity-50">{activity.time}</span>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-                <button
-                  onClick={goToSectas}
-                  className="w-full rounded-xl bg-primary/5 py-4 text-sm font-label font-bold uppercase tracking-widest text-primary transition-colors hover:bg-primary/10"
-                >
-                  Ver Todo el Historial
-                </button>
-              </div>
-            </section>
-
-            <footer className="flex items-center justify-between border-t border-outline-variant/10 pt-12 text-xs font-label text-on-surface-variant opacity-40">
-              <p>© 2023 Plataforma Cruzada Apologetica Itinerante | Ad maiorem Dei gloriam</p>
-              <div className="flex gap-6">
-                <a className="hover:underline" href="#">Manual de Protocolo</a>
-                <a className="hover:underline" href="#">Directorio Ecclesiastico</a>
-                <a className="hover:underline" href="#">Seguridad de Datos</a>
-              </div>
-            </footer>
-          </div>
-        </main>
-
-        <div className="arch-mask group fixed bottom-8 right-8 flex h-20 w-12 cursor-pointer flex-col items-center justify-center border border-primary/10 bg-primary/5 text-primary opacity-50 backdrop-blur-md transition-all hover:bg-primary/10 hover:opacity-100">
-          <span className="material-symbols-outlined text-lg transition-transform group-hover:-translate-y-1">expand_less</span>
-          <div className="mt-2 h-8 w-[1px] bg-primary/20"></div>
+      <section className="cai-panel rounded-2xl p-8 border border-white/5 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#04060b] via-[#04060b]/80 to-transparent"></div>
+        
+        <div className="relative z-10 max-w-lg">
+          <h3 className="cai-display text-2xl md:text-3xl text-[#d8c08b] mb-3">Biblioteca de Doctrina</h3>
+          <p className="text-sm text-white/70 leading-relaxed mb-6">
+            Accede a los manuscritos sagrados de la apologética bíblica y teológica. Refuerza tu conocimiento para la defensa de la fe.
+          </p>
+          <button className="cai-button-secondary rounded-full px-6 py-2.5 text-xs uppercase tracking-widest font-semibold text-[#d8c08b] border border-[#d8c08b]/30 hover:bg-[#d8c08b]/10 transition-colors">
+            Consultar Archivos
+          </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

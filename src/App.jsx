@@ -8,6 +8,7 @@ import Certificados from './pages/Certificados';
 import Misiones from './pages/Misiones';
 import Sectas from './pages/Sectas';
 import PendingApproval from './pages/PendingApproval';
+import Layout from './components/Layout';
 
 const PrivateRoute = ({ children, requireAdmin = false }) => {
   const token = localStorage.getItem('token');
@@ -25,7 +26,7 @@ const PrivateRoute = ({ children, requireAdmin = false }) => {
     return <Navigate to="/misiones" replace />;
   }
 
-  return children;
+  return <Layout>{children}</Layout>;
 };
 
 const PublicRoute = ({ children }) => {
