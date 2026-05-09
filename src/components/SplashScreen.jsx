@@ -35,9 +35,9 @@ const SplashScreen = ({ onFinish }) => {
       {/* Fondo estilo amanecer dorado (Vaticano/Roma) con imágenes proporcionadas */}
       <div className="absolute inset-0 z-0">
         {/* Imagen para celular (visible en pantallas móviles, oculta en desktop) */}
-        <div className="md:hidden absolute inset-0 bg-[url('/images/paracelular.png')] bg-cover bg-center"></div>
+        <div className="md:hidden absolute inset-0 bg-[url('/images/paracelular.png')] bg-cover bg-center opacity-80"></div>
         {/* Imagen para desktop (visible en pantallas md y mayores, oculta en móvil) */}
-        <div className="hidden md:block absolute inset-0 bg-[url('/images/paradesktop.png')] bg-cover bg-center"></div>
+        <div className="hidden md:block absolute inset-0 bg-[url('/images/paradesktop.png')] bg-cover bg-center opacity-80"></div>
 
         {/* Sutil oscurecimiento en la parte inferior para asegurar que la barra de carga resalte */}
         <div className="absolute inset-x-0 bottom-0 h-[40%] bg-gradient-to-t from-[#04060b] via-[#04060b]/50 to-transparent"></div>
