@@ -32,14 +32,15 @@ const SplashScreen = ({ onFinish }) => {
         isExiting ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'
       }`}
     >
-      {/* Fondo estilo amanecer dorado (Vaticano/Roma) */}
+      {/* Fondo estilo amanecer dorado (Vaticano/Roma) con imágenes proporcionadas */}
       <div className="absolute inset-0 z-0">
-        {/* Brillo inferior */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[150%] h-[60%] bg-[radial-gradient(ellipse_at_bottom,rgba(216,192,139,0.3)_0%,rgba(4,6,11,1)_70%)] opacity-90"></div>
-        {/* Brillo central tras el logo */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] h-[100%] bg-[radial-gradient(circle_at_center,rgba(207,93,103,0.15)_0%,transparent_60%)]"></div>
-        {/* Nubes/Textura sutil simulada */}
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-bottom opacity-[0.03] mix-blend-overlay"></div>
+        {/* Imagen para celular (visible en pantallas móviles, oculta en desktop) */}
+        <div className="md:hidden absolute inset-0 bg-[url('/images/paracelular.png')] bg-cover bg-center"></div>
+        {/* Imagen para desktop (visible en pantallas md y mayores, oculta en móvil) */}
+        <div className="hidden md:block absolute inset-0 bg-[url('/images/paradesktop.png')] bg-cover bg-center"></div>
+
+        {/* Sutil oscurecimiento en la parte inferior para asegurar que la barra de carga resalte */}
+        <div className="absolute inset-x-0 bottom-0 h-[40%] bg-gradient-to-t from-[#04060b] via-[#04060b]/50 to-transparent"></div>
       </div>
 
       {/* Logo Central */}
