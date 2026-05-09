@@ -28,7 +28,15 @@ const Login = () => {
       localStorage.setItem('token', response.accessToken);
       localStorage.setItem('user', JSON.stringify(response.user));
 
-      navigate('/dashboard');
+      const user = response.user;
+      let targetRoute = '/dashboard';
+      if (user.role === 'SOLDADO_PENDING') {
+        targetRoute = '/pending';
+      } else if (user.role === 'SOLDADO_ACTIVE') {
+        targetRoute = '/misiones';
+      }
+
+      navigate(targetRoute, { state: { showSplash: true } });
     } catch (err) {
       setError(err.message || 'Credenciales incorrectas');
     } finally {

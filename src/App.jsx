@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -9,6 +10,7 @@ import Misiones from './pages/Misiones';
 import Sectas from './pages/Sectas';
 import PendingApproval from './pages/PendingApproval';
 import Layout from './components/Layout';
+import SplashScreen from './components/SplashScreen';
 
 const PrivateRoute = ({ children, requireAdmin = false }) => {
   const token = localStorage.getItem('token');
@@ -46,9 +48,22 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-function App() {
+const AppContent = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [showSplash, setShowSplash] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.showSplash) {
+      setShowSplash(true);
+      // Limpiamos el estado para que no vuelva a aparecer al recargar la página
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
+
   return (
-    <Router>
+    <>
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
       <Routes>
         <Route
           path="/login"
@@ -122,6 +137,14 @@ function App() {
         />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
+    </>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }

@@ -43,7 +43,7 @@ const Dashboard = () => {
   }, [isAdmin, user.role]);
 
   const getStats = () => {
-    if (isAdmin && overview) {
+    if (isAdmin) {
       return [
         {
           title: 'Apologetas Pendientes',
@@ -54,41 +54,40 @@ const Dashboard = () => {
         },
         {
           title: 'Misiones por Revisar',
-          value: overview.missionSubmissions?.pendingCount || 0,
+          value: overview?.missionSubmissions?.pendingCount || 0,
           icon: 'menu_book',
           color: 'text-white',
         },
         {
           title: 'Alertas de Sectas',
-          value: overview.sectReports?.pendingCount || 0,
+          value: overview?.sectReports?.pendingCount || 0,
           icon: 'warning',
           color: 'text-[#cf5d67]',
           badge: 'Crítico',
         },
       ];
-    } else if (!isAdmin && progress && history) {
+    } else {
       return [
         {
           title: 'Misiones Completadas',
-          value: history.completedMissionTotal || 0,
+          value: history?.completedMissionTotal || 0,
           icon: 'task_alt',
           color: 'text-[#d8c08b]',
         },
         {
           title: 'Rango Actual',
-          value: progress.rankCode || 'Recluta',
+          value: progress?.rankCode || 'Recluta',
           icon: 'military_tech',
           color: 'text-white',
         },
         {
           title: 'Peso Total',
-          value: progress.totalBadgeWeight || 0,
+          value: progress?.totalBadgeWeight || 0,
           icon: 'workspace_premium',
           color: 'text-[#d8c08b]',
         },
       ];
     }
-    return [];
   };
 
   const stats = getStats();
