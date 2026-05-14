@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../api';
 
@@ -8,6 +8,14 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Precargar las imágenes de la pantalla de carga para que la transición sea instantánea
+  useEffect(() => {
+    const imgMobile = new Image();
+    imgMobile.src = '/images/paracelular.png';
+    const imgDesktop = new Image();
+    imgDesktop.src = '/images/paradesktop.png';
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
