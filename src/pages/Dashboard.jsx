@@ -24,6 +24,12 @@ const apologetasLocations = [
   { id: 5, name: "Apologeta Activo", position: [41.3851, 2.1734], city: "Barcelona, España" },
 ];
 
+// Límites del mapa para evitar que el usuario se salga del mundo
+const mapBounds = [
+  [-90, -180], // Suroeste
+  [90, 180]    // Noreste
+];
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [overview, setOverview] = useState(null);
@@ -174,7 +180,14 @@ const Dashboard = () => {
           <p className="text-sm text-white/50">Ubicación de apologetas activos en el mundo.</p>
         </div>
         <div className="h-[400px] w-full rounded-xl overflow-hidden border border-[#d8c08b]/20 relative z-10">
-          <MapContainer center={[15, -40]} zoom={3} style={{ height: '100%', width: '100%', background: '#04060b' }}>
+          <MapContainer 
+            center={[15, -40]} 
+            zoom={2.5} 
+            minZoom={2.5}
+            maxBounds={mapBounds}
+            maxBoundsViscosity={1.0}
+            style={{ height: '100%', width: '100%', background: '#04060b' }}
+          >
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
