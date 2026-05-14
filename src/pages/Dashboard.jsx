@@ -1,6 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../api';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Icono personalizado para el mapa (dorado acorde al diseño)
+const customIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+// Datos dummy de ubicaciones
+const apologetasLocations = [
+  { id: 1, name: "Apologeta Activo", position: [4.7110, -74.0721], city: "Bogotá, Colombia" },
+  { id: 2, name: "Apologeta Activo", position: [-34.6037, -58.3816], city: "Buenos Aires, Argentina" },
+  { id: 3, name: "Apologeta Activo", position: [3.4516, -76.5320], city: "Cali, Colombia" },
+  { id: 4, name: "Apologeta Activo", position: [19.4326, -99.1332], city: "Ciudad de México, México" },
+  { id: 5, name: "Apologeta Activo", position: [41.3851, 2.1734], city: "Barcelona, España" },
+];
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -129,6 +151,7 @@ const Dashboard = () => {
         ))}
       </section>
 
+      {/* 
       <section className="cai-panel rounded-2xl p-8 border border-white/5 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#04060b] via-[#04060b]/80 to-transparent"></div>
@@ -141,6 +164,32 @@ const Dashboard = () => {
           <button className="cai-button-secondary rounded-full px-6 py-2.5 text-xs uppercase tracking-widest font-semibold text-[#d8c08b] border border-[#d8c08b]/30 hover:bg-[#d8c08b]/10 transition-colors">
             Consultar Archivos
           </button>
+        </div>
+      </section>
+      */}
+
+      <section className="cai-panel rounded-2xl p-4 md:p-8 border border-white/5 relative overflow-hidden flex flex-col gap-4">
+        <div>
+          <h3 className="cai-display text-2xl md:text-3xl text-[#d8c08b]">Despliegue Global</h3>
+          <p className="text-sm text-white/50">Ubicación de apologetas activos en el mundo.</p>
+        </div>
+        <div className="h-[400px] w-full rounded-xl overflow-hidden border border-[#d8c08b]/20 relative z-10">
+          <MapContainer center={[15, -40]} zoom={3} style={{ height: '100%', width: '100%', background: '#04060b' }}>
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            />
+            {apologetasLocations.map((loc) => (
+              <Marker key={loc.id} position={loc.position} icon={customIcon}>
+                <Popup>
+                  <div className="text-center p-1">
+                    <p className="font-bold text-[#04060b] mb-1">{loc.name}</p>
+                    <p className="text-xs text-gray-600">{loc.city}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
         </div>
       </section>
     </div>
