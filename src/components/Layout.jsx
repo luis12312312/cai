@@ -39,6 +39,7 @@ const Layout = ({ children }) => {
         { label: 'Sectas', path: '/sectas', icon: 'gavel' },
       ]
     : [
+        { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
         { label: 'Misiones', path: '/misiones', icon: 'explore_nearby' },
         { label: 'Sectas', path: '/sectas', icon: 'gavel' },
       ];

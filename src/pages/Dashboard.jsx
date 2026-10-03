@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../api';
+import RankProgress from '../components/RankProgress';
+import RankAdministration from '../components/RankAdministration';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -103,13 +105,13 @@ const Dashboard = () => {
         },
         {
           title: 'Rango Actual',
-          value: progress?.rankCode || 'Recluta',
+          value: progress?.rank?.name || 'Postulante',
           icon: 'military_tech',
           color: 'text-white',
         },
         {
-          title: 'Peso Total',
-          value: progress?.totalBadgeWeight || 0,
+          title: 'Puntos acumulados',
+          value: progress?.totalPoints || 0,
           icon: 'workspace_premium',
           color: 'text-[#d8c08b]',
         },
@@ -128,6 +130,7 @@ const Dashboard = () => {
         </h1>
         <div className="h-0.5 w-16 bg-gradient-to-r from-[#cf5d67] to-[#d8c08b] mt-2"></div>
       </header>
+      {isAdmin ? <RankAdministration /> : <RankProgress />}
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat) => (

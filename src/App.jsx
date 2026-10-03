@@ -91,7 +91,7 @@ const AppContent = () => {
         <Route
           path="/dashboard"
           element={
-            <PrivateRoute requireAdmin={true}>
+            <PrivateRoute>
               <Dashboard />
             </PrivateRoute>
           }
