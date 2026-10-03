@@ -90,6 +90,9 @@ const Misiones = () => {
   const [selectedMision, setSelectedMision] = useState(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [evidenceFile, setEvidenceFile] = useState(null);
+  const [uploadMission, setUploadMission] = useState(null);
+  const [busyMissions, setBusyMissions] = useState({});
+  const [missionFeedback, setMissionFeedback] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
 
@@ -129,7 +132,8 @@ const Misiones = () => {
           evidencia: 'Evidencia',
           resumen: m.description,
           apologetas: [],
-          publicationState: m.publicationState
+          publicationState: m.publicationState,
+          assignmentStatus: m.myAssignment?.status || null,
         })));
       }
     } catch (error) {
@@ -168,22 +172,46 @@ const Misiones = () => {
 
 
   const autoAssignMission = async (misionId) => {
-    if (!evidenceFile) {
-      alert("Por favor selecciona un archivo de evidencia antes de enviar.");
-      return;
+    setBusyMissions(current => ({ ...current, [misionId]: true }));
+    setMissionFeedback(current => ({ ...current, [misionId]: null }));
+    try {
+      const assignment = await fetchApi('missions.assign', { data: { id: misionId } });
+      setMisionesLocales(current => current.map(mision => mision.id === misionId ? { ...mision, assignmentStatus: assignment.status } : mision));
+      await fetchMissions();
+      setMissionFeedback(current => ({ ...current, [misionId]: { type: 'success', message: 'Misión asignada. Puedes subir la evidencia cuando termines.' } }));
+    } catch (error) {
+      setMissionFeedback(current => ({ ...current, [misionId]: { type: 'error', message: error.message } }));
+    } finally {
+      setBusyMissions(current => ({ ...current, [misionId]: false }));
     }
-    
+  };
+
+  const openEvidenceUpload = (mision) => {
+    setUploadMission(mision);
+    setEvidenceFile(null);
+    setMissionFeedback(current => ({ ...current, [mision.id]: null }));
+  };
+
+  const submitEvidence = async (event) => {
+    event.preventDefault();
+    if (!uploadMission || !evidenceFile) return;
+    const misionId = uploadMission.id;
+    setBusyMissions(current => ({ ...current, [misionId]: true }));
+    setMissionFeedback(current => ({ ...current, [misionId]: null }));
     try {
       await fetchApi('submissions.create', {
         data: { missionId: misionId, submissionNote: 'Evidencia enviada desde la plataforma.' },
         file: evidenceFile,
       });
-      alert("Evidencia enviada correctamente.");
       setEvidenceFile(null);
-      fetchMissions();
+      setUploadMission(null);
+      setMisionesLocales(current => current.map(mision => mision.id === misionId ? { ...mision, assignmentStatus: 'PENDING' } : mision));
+      await fetchMissions();
+      setMissionFeedback(current => ({ ...current, [misionId]: { type: 'success', message: 'Evidencia enviada para revisión.' } }));
     } catch (error) {
-      console.error('Error submitting evidence:', error);
-      alert("Error al enviar evidencia: " + error.message);
+      setMissionFeedback(current => ({ ...current, [misionId]: { type: 'error', message: error.message } }));
+    } finally {
+      setBusyMissions(current => ({ ...current, [misionId]: false }));
     }
   };
 
@@ -227,6 +255,7 @@ const Misiones = () => {
   };
 
   const openMissionDetail = (mision) => {
+    if (!isAdmin) return;
     setSelectedMision(buildMissionEvidenceDetails(mision));
     setCurrentMediaIndex(0);
   };
@@ -257,21 +286,21 @@ const Misiones = () => {
   };
 
   const renderMissionCard = (mision) => (
-    <article key={mision.id} className="cai-card rounded-2xl p-5 border border-white/5 relative overflow-hidden group">
+    <article key={mision.id} className="cai-card min-w-0 rounded-2xl p-5 border border-white/5 relative overflow-hidden group">
       <div className="flex items-start justify-between gap-4 relative z-10">
-        <div>
-          <h3 className="cai-display text-2xl text-white group-hover:text-[#d8c08b] transition-colors">{mision.titulo}</h3>
+        <div className="min-w-0">
+          <h3 className="cai-display break-words text-2xl text-white group-hover:text-[#d8c08b] transition-colors">{mision.titulo}</h3>
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-[#cf5d67]">{mision.tipo}</p>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[#d8c08b]">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[#d8c08b]">
           <span className="material-symbols-outlined text-xl">map</span>
         </div>
       </div>
 
-      <p className="mt-4 text-sm leading-relaxed text-white/70 relative z-10">{mision.resumen}</p>
+      <p className="mt-4 break-words text-sm leading-relaxed text-white/70 relative z-10">{mision.resumen}</p>
 
       <div className="mt-4 flex flex-wrap gap-2 relative z-10">
-        <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[9px] uppercase tracking-widest text-white/60">
+        <span className="max-w-full break-words rounded-2xl border border-white/10 bg-black/40 px-3 py-1 text-[9px] uppercase tracking-widest text-white/60">
           {mision.lugar}
         </span>
         <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[9px] uppercase tracking-widest text-white/60">
@@ -293,40 +322,51 @@ const Misiones = () => {
         </div>
       </div>
 
-      <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 relative z-10">
-        <div className="flex items-center gap-2">
+      <div className="mt-6 grid min-w-0 gap-3 border-t border-white/10 pt-4 relative z-10">
+        {isAdmin ? (
           <button
             type="button"
             onClick={() => openMissionDetail(mision)}
-            className="rounded-full border border-[#d8c08b]/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-[#d8c08b] transition-colors hover:bg-[#d8c08b]/10"
+            className="w-full max-w-full whitespace-normal break-words rounded-2xl border border-[#d8c08b]/30 px-4 py-3 text-[10px] font-semibold uppercase tracking-widest text-[#d8c08b] transition-colors hover:bg-[#d8c08b]/10"
           >
             Ver evidencias
           </button>
-          {!isAdmin && (
-            <div className="flex items-center gap-2 ml-2">
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={(e) => setEvidenceFile(e.target.files[0])} 
-                className="text-[10px] text-white/50 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:uppercase file:tracking-widest file:bg-white/5 file:text-white/80"
-              />
+        ) : !mision.assignmentStatus ? (
               <button
                 type="button"
                 onClick={() => autoAssignMission(mision.id)}
-                className="cai-button-primary rounded-full px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
-                title="Asignarse a esta misión subiendo la evidencia"
+                disabled={busyMissions[mision.id]}
+                className="cai-button-primary w-full max-w-full whitespace-normal break-words rounded-2xl px-4 py-3 text-[10px] font-semibold uppercase tracking-widest leading-relaxed text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               >
-                Reportar
+                {busyMissions[mision.id] ? 'Asignando...' : 'Asignarme esta misión'}
               </button>
-            </div>
-          )}
-        </div>
+        ) : (
+          <>
+            <p className="break-words text-xs leading-relaxed text-[#d8c08b]">
+              {mision.assignmentStatus === 'PENDING' ? 'Evidencia enviada · En revisión' :
+               mision.assignmentStatus === 'APPROVED' ? 'Misión completada' :
+               mision.assignmentStatus === 'REJECTED' ? 'Evidencia rechazada · Puedes volver a enviarla' :
+               'Asignada a ti · Sube la evidencia cuando termines'}
+            </p>
+            {['ASSIGNED', 'REJECTED'].includes(mision.assignmentStatus) && (
+              <button type="button" onClick={() => openEvidenceUpload(mision)} disabled={busyMissions[mision.id]}
+                className="w-full max-w-full whitespace-normal break-words rounded-2xl border border-[#d8c08b]/30 px-4 py-3 text-[10px] font-semibold uppercase tracking-widest leading-relaxed text-[#d8c08b] hover:bg-[#d8c08b]/10 disabled:opacity-50">
+                {mision.assignmentStatus === 'REJECTED' ? 'Volver a enviar evidencia' : 'Subir evidencia'}
+              </button>
+            )}
+          </>
+        )}
+        {missionFeedback[mision.id] && (
+          <p role="status" className={`break-words text-xs leading-relaxed ${missionFeedback[mision.id].type === 'error' ? 'text-[#cf5d67]' : 'text-white/70'}`}>
+            {missionFeedback[mision.id].message}
+          </p>
+        )}
       </div>
     </article>
   );
 
   const renderMissionDetail = () => {
-    if (!selectedMision) {
+    if (!isAdmin || !selectedMision) {
       return null;
     }
 
@@ -598,6 +638,36 @@ const Misiones = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {renderMissionDetail()}
+      {!isAdmin && uploadMission && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <button type="button" className="absolute inset-0" aria-label="Cerrar subida de evidencia"
+            disabled={busyMissions[uploadMission.id]} onClick={() => { setUploadMission(null); setEvidenceFile(null); }} />
+          <form onSubmit={submitEvidence} role="dialog" aria-modal="true" aria-labelledby="upload-evidence-title"
+            className="cai-card relative z-10 max-h-[90vh] w-full min-w-0 max-w-lg overflow-y-auto rounded-2xl border border-white/10 bg-[#04060b] p-5 sm:p-7">
+            <h2 id="upload-evidence-title" className="cai-display break-words text-2xl text-white">Subir evidencia</h2>
+            <p className="mt-2 break-words text-sm text-white/70">{uploadMission.titulo}</p>
+            <p className="mt-3 text-xs leading-relaxed text-white/50">Tu misión ya está asignada. Envía el archivo cuando hayas terminado; el equipo administrador lo revisará.</p>
+            <label className="mt-5 block min-w-0">
+              <span className="text-xs text-[#d8c08b]">Archivo de evidencia</span>
+              <input type="file" required autoFocus accept=".jpg,.jpeg,.png,.webp,.gif,.pdf" disabled={busyMissions[uploadMission.id]}
+                onChange={event => setEvidenceFile(event.target.files?.[0] || null)}
+                className="mt-2 block w-full min-w-0 max-w-full text-xs text-white/70 file:mr-2 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:text-white" />
+            </label>
+            <p className="mt-2 text-xs text-white/40">JPG, PNG, WebP, GIF o PDF. Máximo 5 MB.</p>
+            {missionFeedback[uploadMission.id]?.type === 'error' && (
+              <p role="alert" className="mt-4 break-words text-sm text-[#cf5d67]">{missionFeedback[uploadMission.id].message}</p>
+            )}
+            <div className="mt-6 grid min-w-0 gap-3 sm:grid-cols-2">
+              <button type="button" disabled={busyMissions[uploadMission.id]} onClick={() => { setUploadMission(null); setEvidenceFile(null); }}
+                className="w-full whitespace-normal rounded-2xl border border-white/20 px-4 py-3 text-xs text-white disabled:opacity-50">Subir después</button>
+              <button type="submit" disabled={!evidenceFile || busyMissions[uploadMission.id]}
+                className="cai-button-primary w-full whitespace-normal rounded-2xl px-4 py-3 text-xs text-white disabled:opacity-50">
+                {busyMissions[uploadMission.id] ? 'Enviando...' : 'Enviar evidencia'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       <header className="flex flex-col gap-2">
         <p className="text-[10px] uppercase tracking-[0.35em] text-[#cf5d67] font-semibold">Misiones Activas</p>
         <h1 className="cai-display text-3xl md:text-5xl text-white">
@@ -607,7 +677,7 @@ const Misiones = () => {
       </header>
 
       <p className="text-sm leading-relaxed text-white/70 max-w-2xl">
-        Administra las misiones, registra nuevas salidas y asigna varios apologetas en un mismo frente pastoral.
+        {isAdmin ? 'Administra las misiones, registra nuevas salidas y revisa las evidencias del equipo.' : 'Asígnate una misión y sube tu evidencia cuando la hayas completado.'}
       </p>
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
