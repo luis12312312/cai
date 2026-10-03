@@ -5,14 +5,25 @@ const initialForm = {
   sectName: '',
   locationDescription: '',
   referenceNote: '',
+  latitude: '',
+  longitude: '',
 };
 
 const Sectas = () => {
+  const user=JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin=['SUPER_ADMIN','REGISTRADOR'].includes(user.role);
   const [sectasList, setSectasList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
+  const [reviewNotes, setReviewNotes] = useState({});
+  const [busyReview, setBusyReview] = useState(null);
+  async function reviewSect(id,status) {
+    setBusyReview(id);
+    try {await fetchApi('sectReports.review',{data:{id,status,reviewNote:reviewNotes[id]}}); await fetchSectas();}
+    catch(e) {setFeedback({type:'error',message:e.message});} finally {setBusyReview(null);}
+  }
 
   useEffect(() => {
     fetchSectas();
@@ -34,6 +45,7 @@ const Sectas = () => {
       if (allItems.length > 0) {
         const mapped = allItems.map((item) => ({
           id: item.id,
+          apiStatus:item.status,
           nombre: item.sectName,
           categoria: item.status === 'PENDING' ? 'Reporte Pendiente' : 'Secta Registrada',
           riesgo: item.status === 'PENDING' ? 'Evaluando' : 'Alto',
@@ -71,7 +83,7 @@ const Sectas = () => {
     setIsSubmitting(true);
     try {
       await fetchApi('sectReports.create', {
-        data: form,
+        data: {...form,latitude:form.latitude === '' ? undefined : Number(form.latitude),longitude:form.longitude === '' ? undefined : Number(form.longitude)},
       });
       setFeedback({ type: 'success', message: 'Reporte de secta enviado correctamente. Queda en espera de aprobación.' });
       setForm(initialForm);
@@ -172,7 +184,7 @@ const Sectas = () => {
             </label>
 
             <label className="block">
-              <span className="text-[10px] uppercase tracking-widest text-[#cf5d67] font-semibold">Descripción y señales</span>
+              <span className="text-[10px] uppercase tracking-widest text-[#cf5d67] font-semibold">Descripción doctrinal y fuentes</span>
               <textarea
                 name="referenceNote"
                 value={form.referenceNote}
@@ -183,6 +195,9 @@ const Sectas = () => {
                 required
               />
             </label>
+
+            <div className="grid gap-3 sm:grid-cols-2">{[['latitude','Latitud',-85.0511,85.0511],['longitude','Longitud',-180,180]].map(([key,label,min,max]) => <label key={key} className="block text-xs text-white/60">{label} (para el mapa)<input type="number" step="any" min={min} max={max} value={form[key]} onChange={handleFieldChange(key)} className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 p-3 text-sm text-white" /></label>)}</div>
+            <p className="text-xs text-white/40">Registra únicamente la ubicación pública del grupo y su doctrina. No publiques nombres, fotos ni direcciones personales de interlocutores.</p>
 
             {feedback.message && (
               <div
@@ -261,6 +276,7 @@ const Sectas = () => {
                     ))}
                   </div>
                 </div>
+                {isAdmin && secta.apiStatus === 'PENDING' && <div className="mt-4 space-y-3"><textarea value={reviewNotes[secta.id] || ''} onChange={e => setReviewNotes(n => ({...n,[secta.id]:e.target.value}))} placeholder="Verifica doctrina, ubicación y anonimización; explica tu decisión." className="w-full rounded-xl border border-white/10 bg-black/40 p-3 text-sm text-white" /><div className="grid gap-3 sm:grid-cols-2">{[['APPROVED','Aprobar ficha'],['REJECTED','Rechazar ficha']].map(([status,label]) => <button key={status} disabled={busyReview === secta.id || !reviewNotes[secta.id]?.trim()} onClick={() => reviewSect(secta.id,status)} className="w-full whitespace-normal rounded-xl border border-[#d8c08b]/30 px-4 py-3 text-sm text-[#d8c08b] disabled:opacity-50">{label}</button>)}</div></div>}
               </div>
             ))
           ) : (

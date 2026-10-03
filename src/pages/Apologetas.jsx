@@ -24,6 +24,7 @@ const Apologetas = () => {
       const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
       
       let data = null;
+      const rankCatalog=(await fetchApi('ranks.get')).ranks;
       let misionesCount = 0;
       
       if (isAdmin) {
@@ -69,9 +70,9 @@ const Apologetas = () => {
           id: item.userId || item.id || `soldado-${index}`,
           nombre: item.fullName || item.name || item.userName || `Soldado ${String(item.userId || item.id).substring(0,4)}`,
           especialidad: especialidadOptions[index % especialidadOptions.length],
-          grado: item.rankCode || item.memberId || 'RECLUTA',
+          grado: rankCatalog.find(r => r.code === item.rankCode)?.name || 'Postulante',
           descripcion: 'Apologeta de la plataforma CAI, activo en la red de defensores de la fe.',
-          etiqueta: item.status || item.activationState || 'Activo',
+          etiqueta: item.profile?.reserve ? 'Reserva' : 'Activo',
           icono: iconOptions[index % iconOptions.length],
           color: colorOptions[index % colorOptions.length],
           fondo: bgOptions[index % bgOptions.length],

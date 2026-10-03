@@ -16,15 +16,6 @@ const customIcon = L.divIcon({
   popupAnchor: [0, -14],
 });
 
-// Datos dummy de ubicaciones
-const apologetasLocations = [
-  { id: 1, name: "Apologeta Activo", position: [4.7110, -74.0721], city: "Bogotá, Colombia" },
-  { id: 2, name: "Apologeta Activo", position: [-34.6037, -58.3816], city: "Buenos Aires, Argentina" },
-  { id: 3, name: "Apologeta Activo", position: [3.4516, -76.5320], city: "Cali, Colombia" },
-  { id: 4, name: "Apologeta Activo", position: [19.4326, -99.1332], city: "Ciudad de México, México" },
-  { id: 5, name: "Apologeta Activo", position: [41.3851, 2.1734], city: "Barcelona, España" },
-];
-
 // Límites del mapa para evitar que el usuario se salga del mundo
 const mapBounds = [
   [-85.0511, -180], // Suroeste: límite de la proyección del mapa
@@ -38,6 +29,13 @@ const Dashboard = () => {
   const [history, setHistory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
+  const [locations, setLocations] = useState([]);
+  const [mapError, setMapError] = useState('');
+  useEffect(() => {
+    let active=true;
+    fetchApi('sectRegistry.list', {data:{pageSize:100}}).then(data => {if(active) setLocations(data.items.filter(s => typeof s.latitude==='number' && typeof s.longitude==='number'));}).catch(e => {if(active) setMapError(e.message);});
+    return () => {active=false;};
+  }, []);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
@@ -179,7 +177,8 @@ const Dashboard = () => {
       <section className="cai-panel rounded-2xl p-4 md:p-8 border border-white/5 relative overflow-hidden flex flex-col gap-4">
         <div>
           <h3 className="cai-display text-2xl md:text-3xl text-[#d8c08b]">Despliegue Global</h3>
-          <p className="text-sm text-white/50">Ubicación de apologetas activos en el mundo.</p>
+          <p className="text-sm text-white/50">Fichas aprobadas con ubicación pública en el mapa.</p>
+          {mapError && <p className="mt-2 text-xs text-[#cf5d67]">{mapError}</p>}
         </div>
         <div className="h-[400px] w-full rounded-xl overflow-hidden border border-[#d8c08b]/20 relative z-10">
           <MapContainer 
@@ -200,12 +199,12 @@ const Dashboard = () => {
               noWrap={true}
               referrerPolicy="strict-origin-when-cross-origin"
             />
-            {apologetasLocations.map((loc) => (
-              <Marker key={loc.id} position={loc.position} icon={customIcon}>
+            {locations.map((loc) => (
+              <Marker key={loc.id} position={[loc.latitude,loc.longitude]} icon={customIcon}>
                 <Popup>
                   <div className="text-center p-1">
-                    <p className="font-bold text-[#04060b] mb-1">{loc.name}</p>
-                    <p className="text-xs text-gray-600">{loc.city}</p>
+                    <p className="font-bold text-[#04060b] mb-1">{loc.sectName}</p>
+                    <p className="text-xs text-gray-600">{loc.locationDescription}</p>
                   </div>
                 </Popup>
               </Marker>

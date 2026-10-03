@@ -10,8 +10,8 @@ export default function RankProgress({ onChange }) {
   const [saving, setSaving] = useState(false);
   useEffect(() => {
     let active = true;
-    Promise.all([fetchApi('progress.get'), fetchApi('ranks.get'), fetchApi('points.list', { data: { pageSize: 100 } })])
-      .then(([p, c, l]) => { if (active) { setProgress(p); setCatalog(c.ranks); setLedger(l.items); } })
+    Promise.all([fetchApi('progress.get'), fetchApi('ranks.get')])
+      .then(async ([p, c]) => { const l = await fetchApi('points.list', { data: { pageSize: 100 } }); if (active) { setProgress(p); setCatalog(c.ranks); setLedger(l.items); } })
       .catch(e => { if (active) setMessage(e.message); });
     return () => { active = false; };
   }, []);
