@@ -100,3 +100,19 @@
   border-color: rgba(232, 197, 110, 0.75);
   box-shadow: 0 0 0 4px rgba(232, 197, 110, 0.12);
 }
+
+.cai-map-marker {
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+}
+
+.cai-map-marker-dot {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #b18a35;
+  box-shadow: 0 2px 8px rgba(4, 6, 11, 0.5);
+}

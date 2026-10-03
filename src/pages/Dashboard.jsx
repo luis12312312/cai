@@ -6,13 +6,12 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // Icono personalizado para el mapa (dorado acorde al diseño)
-const customIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
+const customIcon = L.divIcon({
+  className: 'cai-map-marker',
+  html: '<span class="cai-map-marker-dot" aria-hidden="true"></span>',
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+  popupAnchor: [0, -14],
 });
 
 // Datos dummy de ubicaciones
@@ -26,8 +25,8 @@ const apologetasLocations = [
 
 // Límites del mapa para evitar que el usuario se salga del mundo
 const mapBounds = [
-  [-90, -180], // Suroeste
-  [90, 180]    // Noreste
+  [-85.0511, -180], // Suroeste: límite de la proyección del mapa
+  [85.0511, 180]    // Noreste
 ];
 
 const Dashboard = () => {
@@ -182,16 +181,21 @@ const Dashboard = () => {
         <div className="h-[400px] w-full rounded-xl overflow-hidden border border-[#d8c08b]/20 relative z-10">
           <MapContainer 
             center={[15, -40]} 
-            zoom={2.5} 
-            minZoom={2.5}
+            zoom={2}
+            minZoom={2}
+            maxZoom={19}
             maxBounds={mapBounds}
             maxBoundsViscosity={1.0}
-            zoomControl={false}
-            attributionControl={false}
+            zoomControl={true}
+            attributionControl={true}
             style={{ height: '100%', width: '100%', background: '#04060b' }}
           >
             <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              maxZoom={19}
+              noWrap={true}
+              referrerPolicy="strict-origin-when-cross-origin"
             />
             {apologetasLocations.map((loc) => (
               <Marker key={loc.id} position={loc.position} icon={customIcon}>
