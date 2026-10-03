@@ -28,9 +28,8 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await fetchApi('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(formData),
+      const response = await fetchApi('auth.login', {
+        data: formData,
       });
 
       localStorage.setItem('token', response.accessToken);

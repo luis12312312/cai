@@ -23,6 +23,7 @@ const PrivateRoute = ({ children, requireAdmin = false }) => {
   if (user.role === 'SOLDADO_PENDING') {
     return <Navigate to="/pending" replace />;
   }
+  if (user.role === 'SOLDADO_INACTIVE') return <Navigate to="/pending" replace />;
 
   if (requireAdmin && user.role !== 'SUPER_ADMIN' && user.role !== 'REGISTRADOR') {
     return <Navigate to="/misiones" replace />;

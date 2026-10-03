@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react-swc';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const targetUrl = env.VITE_API_URL || 'https://cai-backend-ft29.onrender.com';
+  const targetUrl = env.VITE_API_URL || 'http://localhost:8080';
 
   return {
     plugins: [react()],
@@ -13,7 +13,6 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: targetUrl,
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ''),
         },
       },
     },

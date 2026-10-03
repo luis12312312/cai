@@ -22,8 +22,8 @@ const Sectas = () => {
     setIsLoading(true);
     try {
       const [registryRes, reportsRes] = await Promise.all([
-        fetchApi('/sect-registry?page=1&pageSize=50').catch(() => null),
-        fetchApi('/sect-reports?page=1&pageSize=50').catch(() => null),
+        fetchApi('sectRegistry.list', { data: { page: 1, pageSize: 50 } }).catch(() => null),
+        fetchApi('sectReports.list', { data: { page: 1, pageSize: 50 } }).catch(() => null),
       ]);
 
       const approvedItems = registryRes?.items || [];
@@ -70,9 +70,8 @@ const Sectas = () => {
 
     setIsSubmitting(true);
     try {
-      await fetchApi('/sect-reports', {
-        method: 'POST',
-        body: JSON.stringify(form),
+      await fetchApi('sectReports.create', {
+        data: form,
       });
       setFeedback({ type: 'success', message: 'Reporte de secta enviado correctamente. Queda en espera de aprobación.' });
       setForm(initialForm);

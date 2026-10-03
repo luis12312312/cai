@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchApi } from '../api';
+import { fetchApi, downloadFile } from '../api';
 
 const ApologetasPendientes = () => {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ const ApologetasPendientes = () => {
   const fetchReviewRequests = async () => {
     setIsLoadingRequests(true);
     try {
-      const data = await fetchApi('/admin/users?role=SOLDADO_PENDING&page=1&pageSize=50');
+      const data = await fetchApi('users.list', { data: { role: 'SOLDADO_PENDING', page: 1, pageSize: 50 } });
       if (data && data.items) {
         setReviewRequests(data.items);
       }
@@ -27,7 +27,7 @@ const ApologetasPendientes = () => {
 
   const handleApproveRequest = async (userId) => {
     try {
-      await fetchApi(`/admin/users/${userId}/activate`, { method: 'POST' });
+      await fetchApi('users.activate', { data: { id: userId } });
       await fetchReviewRequests();
     } catch (error) {
       alert('Error al aprobar: ' + error.message);
@@ -36,7 +36,7 @@ const ApologetasPendientes = () => {
 
   const handleRejectRequest = async (userId) => {
     try {
-      await fetchApi(`/admin/users/${userId}/deactivate`, { method: 'POST' });
+      await fetchApi('users.deactivate', { data: { id: userId } });
       await fetchReviewRequests();
     } catch (error) {
       alert('Error al rechazar: ' + error.message);
@@ -89,6 +89,14 @@ const ApologetasPendientes = () => {
               </div>
 
               <div className="flex gap-3 md:flex-col lg:flex-row relative z-10">
+                {request.certificateFileId && (
+                  <button
+                    onClick={() => downloadFile(request.certificateFileId).catch(error => alert(error.message))}
+                    className="rounded-full border border-white/20 px-6 py-2.5 text-[10px] uppercase tracking-widest"
+                  >
+                    Ver certificado
+                  </button>
+                )}
                 <button 
                   onClick={() => handleApproveRequest(request.id)}
                   className="flex-1 rounded-full bg-[#d8c08b] px-6 py-2.5 text-[10px] uppercase tracking-widest text-[#04060b] transition-all hover:bg-white font-bold"

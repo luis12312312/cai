@@ -46,8 +46,8 @@ const Dashboard = () => {
       try {
         if (isAdmin) {
           const [data, pendingUsers] = await Promise.all([
-            fetchApi('/admin/operational-overview'),
-            fetchApi('/admin/users?role=SOLDADO_PENDING&page=1&pageSize=1')
+            fetchApi('overview.get'),
+            fetchApi('users.list', { data: { role: 'SOLDADO_PENDING', page: 1, pageSize: 1 } })
           ]);
           setOverview(data);
           if (pendingUsers && typeof pendingUsers.total !== 'undefined') {
@@ -55,8 +55,8 @@ const Dashboard = () => {
           }
         } else if (user.role === 'SOLDADO_ACTIVE') {
           const [prog, hist] = await Promise.all([
-            fetchApi('/progress'),
-            fetchApi('/mission-history')
+            fetchApi('progress.get'),
+            fetchApi('history.get')
           ]);
           setProgress(prog);
           setHistory(hist);

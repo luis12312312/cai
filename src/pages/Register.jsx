@@ -32,35 +32,21 @@ const Register = () => {
     setError('');
 
     try {
-      const registerRes = await fetchApi('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
+      const registerRes = await fetchApi('auth.register', {
+        data: {
           email: formData.email,
           password: formData.password,
           fullName: formData.fullName,
-        }),
+          activationMode: hasId ? 'NUMBER' : 'REVIEW',
+          certificateNumber: formData.certificateId || 'S/N',
+        },
+        file: hasId ? undefined : formData.certificateFile,
       });
 
       localStorage.setItem('token', registerRes.accessToken);
       localStorage.setItem('user', JSON.stringify(registerRes.user));
 
-      if (hasId && formData.certificateId) {
-        await fetchApi('/activation/certificate-number', {
-          method: 'POST',
-          body: JSON.stringify({ certificateNumber: formData.certificateId }),
-        });
-      } else if (!hasId && formData.certificateFile) {
-        const formPayload = new FormData();
-        formPayload.append('certificateNumber', formData.certificateId || 'S/N');
-        formPayload.append('certificatePhoto', formData.certificateFile);
-
-        await fetchApi('/activation/review-request', {
-          method: 'POST',
-          body: formPayload,
-        });
-      }
-
-      navigate('/dashboard');
+      navigate(registerRes.user.role === 'SOLDADO_ACTIVE' ? '/misiones' : '/pending');
     } catch (err) {
       setError(err.message || 'Error en el registro');
     } finally {

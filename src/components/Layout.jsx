@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { fetchApi } from '../api';
+import { fetchApi, logout } from '../api';
 
 const Layout = ({ children }) => {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ const Layout = ({ children }) => {
     const fetchPendingCount = async () => {
       try {
         if (isAdmin) {
-          const pendingUsers = await fetchApi('/admin/users?role=SOLDADO_PENDING&page=1&pageSize=1');
+          const pendingUsers = await fetchApi('users.list', { data: { role: 'SOLDADO_PENDING', page: 1, pageSize: 1 } });
           if (pendingUsers && typeof pendingUsers.total !== 'undefined') {
             setPendingCount(pendingUsers.total);
           }
@@ -27,9 +27,7 @@ const Layout = ({ children }) => {
   }, [isAdmin]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
+    logout();
   };
 
   const navItems = isAdmin 

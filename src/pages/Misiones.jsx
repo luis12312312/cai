@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchApi } from '../api';
+import { fetchApi, logout } from '../api';
 import { apologetas } from '../data/misionesData';
 
 const initialForm = {
@@ -104,8 +104,9 @@ const Misiones = () => {
   }, []);
 
   const fetchPendingCount = async () => {
+    if (!isAdmin) return;
     try {
-      const data = await fetchApi('/admin/users?role=SOLDADO_PENDING&page=1&pageSize=1');
+      const data = await fetchApi('users.list', { data: { role: 'SOLDADO_PENDING', page: 1, pageSize: 1 } });
       if (data && typeof data.total !== 'undefined') {
         setPendingCount(data.total);
       }
@@ -117,8 +118,7 @@ const Misiones = () => {
   const fetchMissions = async () => {
     setIsLoading(true);
     try {
-      const endpoint = isAdmin ? '/admin/missions?page=1&pageSize=50' : '/missions?page=1&pageSize=50';
-      const data = await fetchApi(endpoint);
+      const data = await fetchApi('missions.list', { data: { page: 1, pageSize: 50 } });
       if (data && data.items) {
         setMisionesLocales(data.items.map(m => ({
           id: m.id,
@@ -152,8 +152,7 @@ const Misiones = () => {
   const goToSectas = () => navigate('/sectas');
   const handleLogout = (e) => {
     e.preventDefault();
-    localStorage.removeItem('token');
-    navigate('/login');
+    logout();
   };
 
   const misionesEnriquecidas = useMemo(
@@ -175,13 +174,9 @@ const Misiones = () => {
     }
     
     try {
-      const fd = new FormData();
-      fd.append('proof', evidenceFile);
-      fd.append('submissionNote', 'Evidencia enviada desde la plataforma.');
-      
-      await fetchApi(`/missions/${misionId}/submissions`, {
-        method: 'POST',
-        body: fd
+      await fetchApi('submissions.create', {
+        data: { missionId: misionId, submissionNote: 'Evidencia enviada desde la plataforma.' },
+        file: evidenceFile,
       });
       alert("Evidencia enviada correctamente.");
       setEvidenceFile(null);
@@ -211,16 +206,13 @@ const Misiones = () => {
         genderEligibility: 'ALL',
       };
       
-      const res = await fetchApi('/admin/missions', {
-        method: 'POST',
-        body: JSON.stringify(payload)
+      const res = await fetchApi('missions.create', {
+        data: payload,
       });
       
       // Auto-publish for convenience
       if (res && res.id) {
-        await fetchApi(`/admin/missions/${res.id}/publish`, {
-          method: 'POST'
-        });
+        await fetchApi('missions.publish', { data: { id: res.id } });
       }
 
       fetchMissions();

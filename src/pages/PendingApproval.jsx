@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { refreshUser, logout } from '../api';
 
 const PendingApproval = () => {
   const navigate = useNavigate();
+  const [feedback, setFeedback] = useState('');
+  const [checking, setChecking] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
+    logout();
+  };
+
+  const checkApproval = async () => {
+    setChecking(true);
+    try {
+      const current = await refreshUser();
+      if (current.role === 'SOLDADO_ACTIVE') navigate('/misiones', { replace: true });
+      else if (['SUPER_ADMIN', 'REGISTRADOR'].includes(current.role)) navigate('/dashboard', { replace: true });
+      else setFeedback(current.role === 'SOLDADO_INACTIVE' ? 'Tu solicitud fue rechazada. Contacta con el administrador.' : 'Tu solicitud sigue pendiente de revisión.');
+    } catch (error) { setFeedback(error.message); }
+    finally { setChecking(false); }
   };
 
   return (
@@ -29,6 +41,10 @@ const PendingApproval = () => {
           Para acceder al Santuario Digital, un administrador debe revisar tu solicitud y validar tus credenciales. Por favor, aguarda a que tu acceso sea concedido.
         </p>
 
+        {feedback && <p className="text-sm text-white/70 mb-4" role="status">{feedback}</p>}
+        <button onClick={checkApproval} disabled={checking} className="w-full border border-white/20 rounded-full py-3 mb-3 text-xs disabled:opacity-50">
+          {checking ? 'Consultando...' : 'Consultar aprobación'}
+        </button>
         <button
           onClick={handleLogout}
           className="w-full bg-[#d8c08b] text-[#04060b] rounded-full py-3 px-6 text-[10px] uppercase tracking-widest font-bold hover:bg-white transition-colors"

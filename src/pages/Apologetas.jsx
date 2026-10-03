@@ -29,8 +29,8 @@ const Apologetas = () => {
       if (isAdmin) {
         try {
           const [usersRes, missionsRes] = await Promise.all([
-            fetchApi('/admin/users?role=SOLDADO_ACTIVE&page=1&pageSize=50'),
-            fetchApi('/admin/missions?page=1&pageSize=1')
+            fetchApi('users.list', { data: { role: 'SOLDADO_ACTIVE', page: 1, pageSize: 50 } }),
+            fetchApi('missions.list', { data: { page: 1, pageSize: 1 } })
           ]);
           data = usersRes;
           if (missionsRes && typeof missionsRes.total !== 'undefined') {
@@ -44,8 +44,8 @@ const Apologetas = () => {
       if (!data && !isAdmin) {
         try {
           const [friendsRes, missionsRes] = await Promise.all([
-            fetchApi('/friends?page=1&pageSize=50'),
-            fetchApi('/missions?page=1&pageSize=1')
+            fetchApi('members.list', { data: { page: 1, pageSize: 50 } }),
+            fetchApi('missions.list', { data: { page: 1, pageSize: 1 } })
           ]);
           data = friendsRes;
           if (missionsRes && typeof missionsRes.total !== 'undefined') {

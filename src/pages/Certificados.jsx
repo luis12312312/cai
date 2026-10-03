@@ -29,7 +29,7 @@ const Certificados = () => {
 
   const fetchCertificates = async () => {
     try {
-      const data = await fetchApi('/admin/certificates?page=1&pageSize=100');
+      const data = await fetchApi('certificates.list', { data: { page: 1, pageSize: 100 } });
       if (data && data.items) {
         setCertificates(
           data.items.map((item) => ({
@@ -75,12 +75,11 @@ const Certificados = () => {
 
     setIsLoading(true);
     try {
-      await fetchApi('/admin/certificates', {
-        method: 'POST',
-        body: JSON.stringify({
+      await fetchApi('certificates.create', {
+        data: {
           certificateNumber: identifier,
           issuedToName: name || null,
-        }),
+        },
       });
 
       setCertificateFeedback({
