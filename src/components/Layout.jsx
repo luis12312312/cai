@@ -2,13 +2,39 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { fetchApi, logout } from '../api';
 
+const rankCodes = new Set(['POSTULANTE', 'COMPANERO_ARMAS', 'ESCUDERO', 'SARGENTO_ARMAS', 'CABALLERO_TEMPLE', 'COMENDADOR', 'PRECEPTOR', 'MARISCAL', 'SENESCAL', 'GRAN_MAESTRE']);
+
 const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [pendingCount, setPendingCount] = useState(0);
+  const [rank, setRank] = useState(null);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
+  const currentRank = rank?.userId === user.id ? rank : null;
+  const rankCode = currentRank?.code || (rankCodes.has(user.rankCode) ? user.rankCode : 'POSTULANTE');
+  const rankName = currentRank?.name || rankCode.replaceAll('_', ' ');
+  const shieldUrl = isAdmin ? '/images/Logo.png' : `/ranks/${rankCode}.png`;
+  const shieldAlt = isAdmin ? 'Emblema CAI del administrador' : `Escudo de ${rankName}`;
+
+  useEffect(() => {
+    if (isAdmin || user.role !== 'SOLDADO_ACTIVE') return;
+    let active = true;
+    const applyRank = (progress) => {
+      if (active && rankCodes.has(progress?.rank?.code)) {
+        setRank({ ...progress.rank, userId: user.id });
+        const stored = JSON.parse(localStorage.getItem('user') || '{}');
+        if (stored.id === user.id) localStorage.setItem('user', JSON.stringify({ ...stored, rankCode: progress.rank.code }));
+      }
+    };
+    const refresh = () => { fetchApi('progress.get').then(applyRank).catch(() => {}); };
+    const onProgress = (event) => { if (event.detail.userId === user.id) applyRank(event.detail.progress); };
+    window.addEventListener('cai:progress', onProgress);
+    window.addEventListener('focus', refresh);
+    refresh();
+    return () => { active = false; window.removeEventListener('cai:progress', onProgress); window.removeEventListener('focus', refresh); };
+  }, [user.id, user.role, isAdmin, location.pathname]);
 
   useEffect(() => {
     const fetchPendingCount = async () => {
@@ -49,9 +75,9 @@ const Layout = ({ children }) => {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-72 bg-[#04060b]/90 border-r border-[#d8c08b]/10 backdrop-blur-md relative z-30">
         <div className="p-6 flex flex-col items-center border-b border-[#d8c08b]/10">
-          <img src="/images/Logo.png" alt="CAI Logo" className="h-20 w-auto object-contain mb-4" />
-          <h2 className="cai-display text-center text-sm font-semibold text-[#d8c08b] leading-tight uppercase tracking-widest">{user.fullName || 'Usuario'}</h2>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mt-1">{isAdmin ? 'Administrador' : 'Soldado'}</p>
+          <img src={shieldUrl} alt={shieldAlt} className="mb-4 h-24 w-24 shrink-0 object-contain" />
+          <h2 className="cai-display w-full break-words text-center text-sm font-semibold text-[#d8c08b] leading-tight uppercase tracking-widest">{user.fullName || 'Usuario'}</h2>
+          <p className="text-center text-[10px] uppercase tracking-[0.2em] text-white/50 mt-1">{isAdmin ? 'Administrador' : rankName}</p>
         </div>
 
         <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
@@ -88,15 +114,15 @@ const Layout = ({ children }) => {
       </aside>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-40 bg-[#04060b]/95 backdrop-blur-md border-b border-[#d8c08b]/10 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img src="/images/Logo.png" alt="CAI Logo" className="h-10 w-auto object-contain" />
-          <div className="flex flex-col">
-            <span className="cai-display text-xs font-bold text-[#d8c08b] uppercase tracking-widest">{user.fullName || 'Usuario'}</span>
-            <span className="text-[8px] uppercase tracking-[0.2em] text-white/50">{isAdmin ? 'Admin' : 'Soldado'}</span>
+      <div className="md:hidden fixed top-0 inset-x-0 z-40 h-32 bg-[#04060b]/95 backdrop-blur-md border-b border-[#d8c08b]/10 px-4 py-3 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-1 flex-col items-center gap-1 text-center">
+          <img src={shieldUrl} alt={shieldAlt} className="h-10 w-10 shrink-0 object-contain" />
+          <div className="flex w-full min-w-0 flex-col">
+            <span className="cai-display line-clamp-2 break-words text-xs font-bold text-[#d8c08b] uppercase tracking-widest">{user.fullName || 'Usuario'}</span>
+            <span className="line-clamp-1 text-[8px] uppercase tracking-[0.2em] text-white/50">{isAdmin ? 'Admin' : rankName}</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           {isAdmin && pendingCount > 0 && (
             <button 
               onClick={() => navigate('/apologetas-pendientes')} 
@@ -126,7 +152,7 @@ const Layout = ({ children }) => {
           }}
         />
         
-        <div className="pt-20 pb-24 md:pt-8 md:pb-8 px-4 sm:px-8 max-w-7xl mx-auto w-full min-h-full relative z-10">
+        <div className="pt-36 pb-24 md:pt-8 md:pb-8 px-4 sm:px-8 max-w-7xl mx-auto w-full min-h-full relative z-10">
           {children}
         </div>
       </main>

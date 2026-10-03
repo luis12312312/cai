@@ -31,6 +31,12 @@ export const fetchApi = async (action, options = {}) => {
     error.code = result.error;
     throw error;
   }
+  if (action === 'progress.get' || action === 'profile.update') {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (result.rank && (!options.data?.userId || options.data.userId === user.id)) {
+      window.dispatchEvent(new CustomEvent('cai:progress', { detail: { userId: user.id, progress: result } }));
+    }
+  }
   return result;
 };
 
