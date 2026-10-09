@@ -7,7 +7,7 @@ const field = 'w-full rounded-xl border border-white/10 bg-[#111827] p-3 text-sm
 const areas = ['El Scriptorium', 'La Vigilia', 'Las Primeras Batallas', 'El Mapa', 'La Escaramuza', 'El Campo de Batalla', 'El Heraldo', 'La Preceptoría', 'El Estandarte', 'La Hospitalidad'];
 export default function Apologetas() {
   const [data, setData] = useState({ items: [], ranks: [], total: 0 });
-  const [filters, setFilters] = useState({ q: '', rankCode: '', city: '', area: '', activity: '' });
+  const [filters, setFilters] = useState({ q: '', rankCode: '', country: '', city: '', area: '', activity: '' });
   const [query, setQuery] = useState({});
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -27,6 +27,7 @@ export default function Apologetas() {
     <div className="flex flex-wrap gap-5 text-white"><p>{loading || error ? '—' : data.total} miembros encontrados</p><p>{data.totalMisiones ?? '—'} misiones</p><Link className="text-[#d8c08b]" to="/misiones">Validar evidencias pendientes</Link></div>
     <form onSubmit={e => { e.preventDefault(); setPage(1); setQuery({ ...filters }); }} className="grid gap-3 md:grid-cols-3">
       <input aria-label="Nombre" name="q" placeholder="Buscar por nombre" value={filters.q} onChange={change} className={field} />
+      <input aria-label="País" name="country" placeholder="País" value={filters.country} onChange={change} className={field} />
       <input aria-label="Ciudad" name="city" placeholder="Ciudad" value={filters.city} onChange={change} className={field} />
       <select aria-label="Rango" name="rankCode" value={filters.rankCode} onChange={change} className={field}><option value="">Todos los rangos</option>{data.ranks.map(r => <option key={r.code} value={r.code}>{r.name}</option>)}</select>
       <select aria-label="Área de actividad" name="area" value={filters.area} onChange={change} className={field}><option value="">Todas las áreas</option>{areas.map(area => <option key={area}>{area}</option>)}</select>
@@ -38,7 +39,7 @@ export default function Apologetas() {
       {!data.items.length && <p className="text-white/60">No hay miembros que coincidan con la búsqueda.</p>}
       <div className="grid gap-4 xl:grid-cols-2">{data.items.map(member => <article key={member.id} className="cai-card rounded-2xl p-6 text-white">
         <h2 className="cai-display text-2xl">{member.fullName}</h2><p className="mt-2 text-[#d8c08b]">{data.ranks.find(r => r.code === member.rankCode)?.name || member.rankCode}</p>
-        <p className="mt-2 text-sm text-white/60">{member.profile?.city || 'Ciudad sin registrar'} · {member.profile?.reserve ? 'Reserva' : 'Activo'}</p>
+        <p className="mt-2 text-sm text-white/60">{[member.profile?.city || member.city, member.profile?.country || member.country].filter(Boolean).join(', ') || 'Ubicación sin registrar'} · {member.profile?.reserve ? 'Reserva' : 'Activo'}</p>
         <p className="mt-2 text-sm text-white/60">{member.profile?.areas?.join(', ') || 'Sin misiones validadas por área'}</p>
         <button onClick={() => setSelected(selected === member.id ? null : member.id)} className="mt-4 text-sm text-[#d8c08b]">{selected === member.id ? 'Cerrar perfil' : 'Ver perfil'}</button>
         {selected === member.id && <div className="mt-3 border-t border-white/10 pt-3 text-sm text-white/70"><p>{member.email}</p><p>Última actividad: {member.profile?.lastActivityAt ? new Date(member.profile.lastActivityAt).toLocaleDateString() : 'Sin registrar'}</p></div>}

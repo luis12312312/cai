@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../api';
+import { loadMapLocations } from '../data/loadMapLocations';
 import RankProgress from '../components/RankProgress';
 import RankAdministration from '../components/RankAdministration';
 import LearningPanel from '../components/LearningPanel';
@@ -17,6 +18,7 @@ const customIcon = L.divIcon({
   iconAnchor: [12, 12],
   popupAnchor: [0, -14],
 });
+const memberIcon = L.divIcon({ className: 'cai-map-marker', html: '<span style="display:block;width:20px;height:20px;border-radius:50%;background:#60a5fa;border:3px solid white;box-shadow:0 0 12px #60a5fa" aria-hidden="true"></span>', iconSize: [24, 24], iconAnchor: [12, 12] });
 
 // Límites del mapa para evitar que el usuario se salga del mundo
 const mapBounds = [
@@ -33,6 +35,12 @@ const Dashboard = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [locations, setLocations] = useState([]);
   const [mapError, setMapError] = useState('');
+  const [members, setMembers] = useState([]);
+  const [memberMapError, setMemberMapError] = useState('');
+  const [mapLoading, setMapLoading] = useState(true);
+  const [mapRetry, setMapRetry] = useState(0);
+  const [mapFilters, setMapFilters] = useState({ country: '', city: '' });
+  const filteredMembers = members.filter(m => ["country", "city"].every(key => !mapFilters[key] || m[key].toLocaleLowerCase('es').includes(mapFilters[key].toLocaleLowerCase('es').trim())));
   const [currentMissions, setCurrentMissions] = useState([]);
   const [featured, setFeatured] = useState(null);
   useEffect(() => {
@@ -48,10 +56,14 @@ const Dashboard = () => {
   }, []);
   const [missionError, setMissionError] = useState('');
   useEffect(() => {
-    let active=true;
-    fetchApi('sectRegistry.list', {data:{pageSize:100}}).then(data => {if(active) setLocations(data.items.filter(s => typeof s.latitude==='number' && typeof s.longitude==='number'));}).catch(e => {if(active) setMapError(e.message);});
-    return () => {active=false;};
-  }, []);
+    const controller = new AbortController();
+    setMapError(''); setMemberMapError(''); setMapLoading(true);
+    Promise.allSettled([
+      loadMapLocations(fetchApi, 'sectRegistry.list', controller.signal).then(items => { if (!controller.signal.aborted) setLocations(items); }).catch(e => { if (!controller.signal.aborted) setMapError(e.message); }),
+      loadMapLocations(fetchApi, 'members.map', controller.signal).then(items => { if (!controller.signal.aborted) setMembers(items); }).catch(e => { if (!controller.signal.aborted) setMemberMapError(e.message); })
+    ]).finally(() => { if (!controller.signal.aborted) setMapLoading(false); });
+    return () => controller.abort();
+  }, [mapRetry]);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
@@ -144,7 +156,7 @@ const Dashboard = () => {
         </h1>
         <div className="h-0.5 w-16 bg-gradient-to-r from-[#cf5d67] to-[#d8c08b] mt-2"></div>
       </header>
-      {isAdmin ? <RankAdministration /> : <RankProgress />}
+      {isAdmin ? <RankAdministration onChange={() => setMapRetry(r => r + 1)} /> : <RankProgress onChange={p => { setProgress(p); setMapRetry(r => r + 1); }} />}
       <LearningPanel admin={isAdmin} records={!isAdmin} />
       <section className="cai-card rounded-2xl p-5 text-white">
         <h2 className="cai-display text-2xl text-[#d8c08b]">Misiones en curso</h2>
@@ -201,8 +213,14 @@ const Dashboard = () => {
       <section className="cai-panel rounded-2xl p-4 md:p-8 border border-white/5 relative overflow-hidden flex flex-col gap-4">
         <div>
           <h3 className="cai-display text-2xl md:text-3xl text-[#d8c08b]">Despliegue Global</h3>
-          <p className="text-sm text-white/50">Fichas aprobadas con ubicación pública en el mapa.</p>
+          <p className="text-sm text-white/50">Azul: apologetas activos agrupados por ciudad. Dorado: fichas aprobadas.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {['country', 'city'].map(key => <input key={key} aria-label={key === 'country' ? 'Filtrar mapa por país' : 'Filtrar mapa por ciudad'} placeholder={key === 'country' ? 'País de los apologetas' : 'Ciudad de los apologetas'} value={mapFilters[key]} onChange={e => setMapFilters(f => ({ ...f, [key]: e.target.value }))} className="rounded-xl border border-white/10 bg-[#111827] p-3 text-sm text-white" />)}
+          </div>
+          <p role="status" className="mt-2 text-xs text-white/60">{mapLoading ? 'Cargando ubicaciones...' : `${filteredMembers.reduce((sum, m) => sum + m.memberCount, 0)} apologetas con ubicación en ${filteredMembers.length} ciudades.`}</p>
           {mapError && <p className="mt-2 text-xs text-[#cf5d67]">{mapError}</p>}
+          {memberMapError && <p role="alert" className="mt-2 text-xs text-[#cf5d67]">Apologetas: {memberMapError}</p>}
+          {(mapError || memberMapError) && <button onClick={() => setMapRetry(r => r + 1)} className="mt-2 text-sm text-[#d8c08b]">Reintentar mapa</button>}
         </div>
         <div className="h-[400px] w-full rounded-xl overflow-hidden border border-[#d8c08b]/20 relative z-10">
           <MapContainer 
@@ -234,6 +252,7 @@ const Dashboard = () => {
                 </Popup>
               </Marker>
             ))}
+            {filteredMembers.map(loc => <Marker key={`members-${loc.id}`} position={[loc.latitude, loc.longitude]} icon={memberIcon}><Popup><p className="font-bold">{loc.city}, {loc.country}</p>{loc.region && <p>{loc.region}</p>}<p>{loc.memberCount} apologeta{loc.memberCount === 1 ? '' : 's'} activo{loc.memberCount === 1 ? '' : 's'}</p></Popup></Marker>)}
           </MapContainer>
         </div>
       </section>

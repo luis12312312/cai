@@ -1,25 +1,26 @@
 import { useEffect, useState } from 'react';
 import { fetchApi } from '../api';
+import LocationPicker from './LocationPicker';
 
 export default function RankProgress({ onChange }) {
   const [progress, setProgress] = useState(null);
   const [catalog, setCatalog] = useState([]);
   const [ledger, setLedger] = useState([]);
   const [birthDate, setBirthDate] = useState('');
-  const [city, setCity] = useState('');
+  const [location, setLocation] = useState({ countryCode: '', city: '', locationId: '' });
   const [history, setHistory] = useState([]);
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
   useEffect(() => {
     let active = true;
     Promise.all([fetchApi('progress.get'), fetchApi('ranks.get')])
-      .then(async ([p, c]) => { const [l,h] = await Promise.all([fetchApi('points.list', { data: { pageSize: 100 } }), fetchApi('history.get', { data: { pageSize: 100 } })]); if (active) { setProgress(p); setCity(p.city || ''); setCatalog(c.ranks); setLedger(l.items); setHistory(h.history.items); } })
+      .then(async ([p, c]) => { const [l,h] = await Promise.all([fetchApi('points.list', { data: { pageSize: 100 } }), fetchApi('history.get', { data: { pageSize: 100 } })]); if (active) { setProgress(p); setLocation({ city: p.city || '', country: p.country || '', countryCode: p.countryCode || '', locationId: p.locationId || '' }); setCatalog(c.ranks); setLedger(l.items); setHistory(h.history.items); } })
       .catch(e => { if (active) setMessage(e.message); });
     return () => { active = false; };
   }, []);
   async function saveBirth(event) {
-    event.preventDefault(); setSaving(true); setMessage('');
-    try { const p = await fetchApi('profile.update', { data: { birthDate: progress.birthDate || birthDate, city } }); setProgress(p); onChange?.(p); }
+    event.preventDefault(); if (!location.locationId) { setMessage('Busca y selecciona tu ciudad.'); return; } setSaving(true); setMessage('');
+    try { const p = await fetchApi('profile.update', { data: { birthDate: progress.birthDate || birthDate, locationId: location.locationId } }); setProgress(p); onChange?.(p); }
     catch(e) { setMessage(e.message); } finally { setSaving(false); }
   }
   const points = progress?.totalPoints || 0;
@@ -50,8 +51,8 @@ export default function RankProgress({ onChange }) {
         {!progress.birthDate && <label className="min-w-0 flex-1 text-xs text-white/70">Fecha de nacimiento · necesaria antes de reportar
           <input type="date" required value={birthDate} onChange={e => setBirthDate(e.target.value)} className="mt-2 block w-full rounded-lg bg-[#111827] p-3 text-white" />
         </label>}
-        <label className="min-w-0 flex-1 text-xs text-white/70">Ciudad<input maxLength={120} value={city} onChange={e => setCity(e.target.value)} className="mt-2 block w-full rounded-lg bg-[#111827] p-3 text-white" /></label>
-        <button disabled={saving} className="cai-button-primary rounded-xl px-5 py-3 text-sm disabled:opacity-50">{saving ? 'Guardando...' : 'Guardar fecha'}</button>
+        <LocationPicker value={location} onChange={setLocation} disabled={saving} />
+        <button disabled={saving} className="cai-button-primary rounded-xl px-5 py-3 text-sm disabled:opacity-50">{saving ? 'Guardando...' : 'Guardar perfil'}</button>
       </form>
       <p className="mt-3 text-sm text-white/60">Padrino: {progress.sponsor?.fullName || 'Sin asignar'}</p>
       <div className="mt-3 flex flex-wrap gap-3 text-xs text-white/60">{progress.pointsByArea?.map(a => <p key={a.area}>{a.area}: {a.points} puntos</p>)}</div>

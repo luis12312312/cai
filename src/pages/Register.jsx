@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../api';
+import LocationPicker from '../components/LocationPicker';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -8,6 +9,7 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [location, setLocation] = useState({ countryCode: '', city: '', locationId: '' });
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -28,6 +30,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!location.locationId) { setError('Busca y selecciona tu ciudad antes de registrarte.'); return; }
     setIsLoading(true);
     setError('');
 
@@ -37,6 +40,7 @@ const Register = () => {
           email: formData.email,
           password: formData.password,
           fullName: formData.fullName,
+          locationId: location.locationId,
           activationMode: hasId ? 'NUMBER' : 'REVIEW',
           certificateNumber: formData.certificateId || 'S/N',
         },
@@ -88,6 +92,7 @@ const Register = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+
                 {error && (
                   <div className="rounded-2xl border border-[#cf5d67]/30 bg-[#5f1620]/30 px-4 py-3 text-sm text-[#ffd8dc]">
                     {error}
@@ -148,6 +153,8 @@ const Register = () => {
                     type="text"
                   />
                 </div>
+
+                <LocationPicker value={location} onChange={setLocation} disabled={isLoading} />
 
                 <div className="space-y-2">
                   <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/70" htmlFor="email">

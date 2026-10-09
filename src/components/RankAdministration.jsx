@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchApi } from '../api';
+import LocationPicker from './LocationPicker';
 
 const field = 'mt-2 block w-full min-w-0 rounded-xl border border-white/10 bg-[#111827] p-3 text-sm text-white';
 const btn = 'w-full whitespace-normal rounded-xl border border-[#d8c08b]/30 px-4 py-3 text-sm text-[#d8c08b] disabled:opacity-50';
@@ -10,12 +11,14 @@ const flags = {
   'HIT-MAR': [['distinctLocationsVerified', 'Las tres congregaciones están en ciudades o barrios distintos']],
   'HIT-GM': [['chapterElectionVerified', 'Elección del Capítulo General acreditada en el acta'], ['foundedWorkVerified', 'Obra de la Orden fundada y sostenida acreditada en el acta']],
 };
-export default function RankAdministration() {
+export default function RankAdministration({ onChange }) {
   const [users, setUsers] = useState([]);
   const [catalog, setCatalog] = useState({ ranks: [], milestones: [] });
   const [alerts, setAlerts] = useState([]);
   const [reports, setReports] = useState([]);
   const [member, setMember] = useState('');
+  const [location, setLocation] = useState({});
+  const [locationChanged, setLocationChanged] = useState(false);
   const [profile, setProfile] = useState({ birthDate: '', parentalConsentVerified: false, reserve: false, sponsorId: '', reviewNote: '', liftSanction: false });
   const [hito, setHito] = useState({ code: 'HIT-ING', reviewNote: '', requirementsVerified: false, referenceMemberId: '' });
   const [act, setAct] = useState(null);
@@ -33,7 +36,8 @@ export default function RankAdministration() {
   useEffect(() => { load().catch(e => setMessage(e.message)); }, []);
   function choose(id) {
     const u = users.find(x => x.id === id); setMember(id);
-    setProfile({ birthDate: u?.profile?.birthDate || '', city: u?.profile?.city || '', parentalConsentVerified: u?.profile?.parentalConsent || false, reserve: u?.profile?.reserve || false, sponsorId: u?.profile?.sponsorId || '', reviewNote: '', liftSanction: false });
+    setLocation({city: u?.profile?.city || '', country: u?.profile?.country || '', countryCode: u?.profile?.countryCode || '', locationId: u?.profile?.locationId || ''}); setLocationChanged(false);
+    setProfile({ birthDate: u?.profile?.birthDate || '', parentalConsentVerified: u?.profile?.parentalConsent || false, reserve: u?.profile?.reserve || false, sponsorId: u?.profile?.sponsorId || '', reviewNote: '', liftSanction: false });
   }
   async function run(task) { setBusy(true); setMessage(''); try { await task(); } catch(e) { setMessage(e.message); } finally { setBusy(false); } }
   const milestone = catalog.milestones.find(h => h.code === hito.code);
@@ -44,10 +48,10 @@ export default function RankAdministration() {
       <label className="mt-4 block text-xs">Miembro<select value={member} onChange={e => choose(e.target.value)} className={field}><option value="">Selecciona un miembro</option>{users.filter(u => u.id !== me.id).map(u => <option key={u.id} value={u.id}>{u.fullName} · {catalog.ranks.find(r => r.code === u.rankCode)?.name || u.rankCode}</option>)}</select></label>
       {users.length < total && <button disabled={busy} onClick={() => run(async () => { const u = await fetchApi('users.list', { data: { page: page + 1, pageSize: 100 } }); setUsers(v => [...v, ...u.items]); setPage(page + 1); })} className={`${btn} mt-3`}>Cargar más miembros</button>}
       {member && <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <form onSubmit={e => { e.preventDefault(); run(async () => { await fetchApi('profile.update', { data: { userId: member, ...profile, sponsorId: profile.sponsorId || undefined } }); await load(); setMessage('Perfil actualizado.'); }); }} className="space-y-4 rounded-xl bg-white/5 p-4">
+        <form onSubmit={e => { e.preventDefault(); if (locationChanged && !location.locationId) { setMessage('Busca y selecciona la ciudad.'); return; } run(async () => { await fetchApi('profile.update', { data: { userId: member, ...profile, locationId: locationChanged ? location.locationId : undefined, sponsorId: profile.sponsorId || undefined } }); await load(); onChange?.(); setMessage('Perfil actualizado.'); }); }} className="space-y-4 rounded-xl bg-white/5 p-4">
           <h3 className="font-semibold text-white">Perfil y estado</h3><label className="block text-xs">Fecha de nacimiento verificada<input type="date" required value={profile.birthDate} onChange={e => setProfile(p => ({ ...p, birthDate: e.target.value }))} className={field} /></label>
           <label className="flex gap-2"><input type="checkbox" checked={profile.parentalConsentVerified} onChange={e => setProfile(p => ({ ...p, parentalConsentVerified: e.target.checked }))} />Consentimiento de los padres verificado</label>
-          <label className="block text-xs">Ciudad<input maxLength={120} value={profile.city || ''} onChange={e => setProfile(p => ({ ...p, city: e.target.value }))} className={field} /></label>
+          <LocationPicker key={member} required={false} value={location} onChange={value => { setLocation(value); setLocationChanged(true); }} disabled={busy} />
           <label className="flex gap-2"><input type="checkbox" checked={profile.reserve} onChange={e => setProfile(p => ({ ...p, reserve: e.target.checked }))} />En reserva (desmarca para reincorporar)</label>
           <label className="block text-xs">Padrino<select value={profile.sponsorId} onChange={e => setProfile(p => ({ ...p, sponsorId: e.target.value }))} className={field}><option value="">Sin padrino</option>{users.filter(u => u.id !== member && u.role === 'SOLDADO_ACTIVE' && (catalog.ranks.find(r => r.code === u.rankCode)?.level || 0) >= 5).map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}</select></label>
           {isSuper && <label className="flex gap-2"><input type="checkbox" checked={profile.liftSanction} onChange={e => setProfile(p => ({ ...p, liftSanction: e.target.checked }))} />Levantar el bloqueo de ascensos por decisión del Capítulo</label>}
