@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { refreshUser, logout } from '../api';
+import LearningPanel from '../components/LearningPanel';
 
 const PendingApproval = () => {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ const PendingApproval = () => {
           Para acceder al Santuario Digital, un administrador debe revisar tu solicitud y validar tus credenciales. Por favor, aguarda a que tu acceso sea concedido.
         </p>
 
+        <LearningPanel />
         {feedback && <p className="text-sm text-white/70 mb-4" role="status">{feedback}</p>}
         <button onClick={checkApproval} disabled={checking} className="w-full border border-white/20 rounded-full py-3 mb-3 text-xs disabled:opacity-50">
           {checking ? 'Consultando...' : 'Consultar aprobación'}

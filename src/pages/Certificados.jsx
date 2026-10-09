@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchApi } from '../api';
+import { fetchApi, downloadFile } from '../api';
 
 const formatCertificateDate = (dateString) => {
   if (!dateString) return '';
@@ -13,6 +13,8 @@ const formatCertificateDate = (dateString) => {
 
 const Certificados = () => {
   const [certificates, setCertificates] = useState([]);
+  const [kind, setKind] = useState('COURSE');
+  const [file, setFile] = useState(null);
   const [certificateForm, setCertificateForm] = useState({
     identifier: '',
     name: '',
@@ -34,6 +36,8 @@ const Certificados = () => {
         setCertificates(
           data.items.map((item) => ({
             id: item.id,
+            kind: item.kind,
+            fileId: item.fileId,
             identifier: item.certificateNumber,
             name: item.issuedToName || 'Sin nombre',
             status: item.isUsed ? 'Usado' : 'Vigente',
@@ -79,7 +83,9 @@ const Certificados = () => {
         data: {
           certificateNumber: identifier,
           issuedToName: name || null,
+          kind,
         },
+        file,
       });
 
       setCertificateFeedback({
@@ -87,6 +93,7 @@ const Certificados = () => {
         message: `Certificado ${identifier} registrado correctamente.`,
       });
       setCertificateForm({ identifier: '', name: '' });
+      setFile(null);
       fetchCertificates(); // Refresh list
     } catch (error) {
       setCertificateFeedback({
@@ -166,6 +173,9 @@ const Certificados = () => {
               />
             </label>
 
+            <label className="block text-xs text-white/60">Tipo<select value={kind} onChange={e => setKind(e.target.value)} className="mt-2 w-full rounded-xl bg-[#111827] p-3 text-white"><option value="COURSE">Curso</option><option value="MILESTONE">Hito</option><option value="ARMOR">Armadura</option></select></label>
+            <label className="block text-xs text-white/60">Certificado firmado en PDF (opcional, hasta 5 MB)<input key={file ? 'selected' : 'empty'} type="file" accept=".pdf" onChange={e => setFile(e.target.files?.[0] || null)} className="mt-2 w-full text-white" /></label>
+            <p className="text-xs text-white/40">Registrar un certificado no reemplaza la validación de un hito. Solo los de curso habilitan la activación de cuentas.</p>
             {certificateFeedback.message && (
               <div
                 className={`rounded-xl px-4 py-3 text-xs font-medium border ${
@@ -218,6 +228,8 @@ const Certificados = () => {
                       </span>
                     </div>
                     <h4 className="text-lg font-medium text-white group-hover:text-[#d8c08b] transition-colors">{certificate.name}</h4>
+                    <p className="mt-2 text-xs text-white/60">{({ COURSE: 'Curso', MILESTONE: 'Hito', ARMOR: 'Armadura' })[certificate.kind]}</p>
+                    {certificate.fileId && <button onClick={() => downloadFile(certificate.fileId).catch(e => setCertificateFeedback({ type: 'error', message: e.message }))} className="mt-2 text-sm text-[#d8c08b]">Descargar certificado</button>}
                   </div>
 
                   <div className="md:text-right border-t border-white/10 md:border-t-0 pt-3 md:pt-0">

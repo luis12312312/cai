@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../api';
 import RankProgress from '../components/RankProgress';
 import RankAdministration from '../components/RankAdministration';
+import LearningPanel from '../components/LearningPanel';
+import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -31,6 +33,20 @@ const Dashboard = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [locations, setLocations] = useState([]);
   const [mapError, setMapError] = useState('');
+  const [currentMissions, setCurrentMissions] = useState([]);
+  const [featured, setFeatured] = useState(null);
+  useEffect(() => {
+    let active = true;
+    Promise.all([fetchApi('assignments.list', { data: { pageSize: 100 } }), fetchApi('missions.list', { data: { pageSize: 100 } })]).then(([a, m]) => {
+      if (!active) return;
+      setCurrentMissions(a.items.filter(item => item.userId === user.id && ['ASSIGNED', 'PENDING', 'REJECTED'].includes(item.status)));
+      const eligible = m.items.filter(item => item.publicationState === 'PUBLISHED' && !item.rules.field);
+      const month = new Date().getUTCFullYear() * 12 + new Date().getUTCMonth();
+      setFeatured(eligible[month % Math.max(1, eligible.length)] || null);
+    }).catch(e => { if (active) setMissionError(e.message); });
+    return () => { active = false; };
+  }, []);
+  const [missionError, setMissionError] = useState('');
   useEffect(() => {
     let active=true;
     fetchApi('sectRegistry.list', {data:{pageSize:100}}).then(data => {if(active) setLocations(data.items.filter(s => typeof s.latitude==='number' && typeof s.longitude==='number'));}).catch(e => {if(active) setMapError(e.message);});
@@ -129,6 +145,14 @@ const Dashboard = () => {
         <div className="h-0.5 w-16 bg-gradient-to-r from-[#cf5d67] to-[#d8c08b] mt-2"></div>
       </header>
       {isAdmin ? <RankAdministration /> : <RankProgress />}
+      <LearningPanel admin={isAdmin} records={!isAdmin} />
+      <section className="cai-card rounded-2xl p-5 text-white">
+        <h2 className="cai-display text-2xl text-[#d8c08b]">Misiones en curso</h2>
+        {missionError && <p role="alert" className="mt-3 text-[#cf5d67]">{missionError}</p>}
+        <ul className="mt-3 space-y-2 text-sm">{currentMissions.map(m => <li key={m.id}>{m.missionTitle} · {({ ASSIGNED: 'Asignada', PENDING: 'En revisión', REJECTED: 'Por corregir' })[m.status]}</li>)}</ul>
+        {featured && <div className="mt-4"><p className="text-sm text-[#d8c08b]">Misión emergente del mes: {featured.title}</p><p className="mt-2 text-xs text-white/60">Cuatro semanas consecutivas con una misión validada: +25 puntos de constancia.</p></div>}
+        <Link to="/misiones" className="mt-4 inline-block text-sm text-[#d8c08b]">Ir a Misiones</Link>
+      </section>
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat) => (
@@ -205,6 +229,7 @@ const Dashboard = () => {
                   <div className="text-center p-1">
                     <p className="font-bold text-[#04060b] mb-1">{loc.sectName}</p>
                     <p className="text-xs text-gray-600">{loc.locationDescription}</p>
+                    <p className="mt-2 text-xs text-gray-600">{loc.referenceNote}</p>
                   </div>
                 </Popup>
               </Marker>

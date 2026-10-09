@@ -8,7 +8,7 @@ const flags = {
   'HIT-CAB': [['doctrinalExamVerified', 'Examen doctrinal integral aprobado'], ['ledFieldMissionVerified', 'Misión de campo liderada verificada']],
   'HIT-COM': [['localCommandVerified', 'Encomienda local activa y sostenida verificada']],
   'HIT-MAR': [['distinctLocationsVerified', 'Las tres congregaciones están en ciudades o barrios distintos']],
-  'HIT-GM': [['chapterElectionVerified', 'Elección del Capítulo General acreditada en el acta']],
+  'HIT-GM': [['chapterElectionVerified', 'Elección del Capítulo General acreditada en el acta'], ['foundedWorkVerified', 'Obra de la Orden fundada y sostenida acreditada en el acta']],
 };
 export default function RankAdministration() {
   const [users, setUsers] = useState([]);
@@ -33,7 +33,7 @@ export default function RankAdministration() {
   useEffect(() => { load().catch(e => setMessage(e.message)); }, []);
   function choose(id) {
     const u = users.find(x => x.id === id); setMember(id);
-    setProfile({ birthDate: u?.profile?.birthDate || '', parentalConsentVerified: u?.profile?.parentalConsent || false, reserve: u?.profile?.reserve || false, sponsorId: u?.profile?.sponsorId || '', reviewNote: '', liftSanction: false });
+    setProfile({ birthDate: u?.profile?.birthDate || '', city: u?.profile?.city || '', parentalConsentVerified: u?.profile?.parentalConsent || false, reserve: u?.profile?.reserve || false, sponsorId: u?.profile?.sponsorId || '', reviewNote: '', liftSanction: false });
   }
   async function run(task) { setBusy(true); setMessage(''); try { await task(); } catch(e) { setMessage(e.message); } finally { setBusy(false); } }
   const milestone = catalog.milestones.find(h => h.code === hito.code);
@@ -47,6 +47,7 @@ export default function RankAdministration() {
         <form onSubmit={e => { e.preventDefault(); run(async () => { await fetchApi('profile.update', { data: { userId: member, ...profile, sponsorId: profile.sponsorId || undefined } }); await load(); setMessage('Perfil actualizado.'); }); }} className="space-y-4 rounded-xl bg-white/5 p-4">
           <h3 className="font-semibold text-white">Perfil y estado</h3><label className="block text-xs">Fecha de nacimiento verificada<input type="date" required value={profile.birthDate} onChange={e => setProfile(p => ({ ...p, birthDate: e.target.value }))} className={field} /></label>
           <label className="flex gap-2"><input type="checkbox" checked={profile.parentalConsentVerified} onChange={e => setProfile(p => ({ ...p, parentalConsentVerified: e.target.checked }))} />Consentimiento de los padres verificado</label>
+          <label className="block text-xs">Ciudad<input maxLength={120} value={profile.city || ''} onChange={e => setProfile(p => ({ ...p, city: e.target.value }))} className={field} /></label>
           <label className="flex gap-2"><input type="checkbox" checked={profile.reserve} onChange={e => setProfile(p => ({ ...p, reserve: e.target.checked }))} />En reserva (desmarca para reincorporar)</label>
           <label className="block text-xs">Padrino<select value={profile.sponsorId} onChange={e => setProfile(p => ({ ...p, sponsorId: e.target.value }))} className={field}><option value="">Sin padrino</option>{users.filter(u => u.id !== member && u.role === 'SOLDADO_ACTIVE' && (catalog.ranks.find(r => r.code === u.rankCode)?.level || 0) >= 5).map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}</select></label>
           {isSuper && <label className="flex gap-2"><input type="checkbox" checked={profile.liftSanction} onChange={e => setProfile(p => ({ ...p, liftSanction: e.target.checked }))} />Levantar el bloqueo de ascensos por decisión del Capítulo</label>}

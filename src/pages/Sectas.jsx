@@ -19,6 +19,19 @@ const Sectas = () => {
   const [feedback, setFeedback] = useState({ type: '', message: '' });
   const [reviewNotes, setReviewNotes] = useState({});
   const [busyReview, setBusyReview] = useState(null);
+  const [nearby, setNearby] = useState(null);
+  const [level, setLevel] = useState(1);
+  useEffect(() => { if (!isAdmin) fetchApi('progress.get').then(p => setLevel(p.reserve ? 0 : p.rank.level)).catch(e => setFeedback({ type: 'error', message: e.message })); }, []);
+  function locate() {
+    if (!navigator.geolocation) { setFeedback({ type: 'error', message: 'Tu navegador no permite consultar la ubicación.' }); return; }
+    navigator.geolocation.getCurrentPosition(p => setNearby([p.coords.latitude, p.coords.longitude]), () => setFeedback({ type: 'error', message: 'No se pudo obtener tu ubicación.' }));
+  }
+  function distance(item) {
+    if (!nearby || typeof item.latitude !== 'number' || typeof item.longitude !== 'number') return Infinity;
+    const radians = value => value * Math.PI / 180;
+    const a = Math.sin(radians(item.latitude - nearby[0]) / 2) ** 2 + Math.cos(radians(nearby[0])) * Math.cos(radians(item.latitude)) * Math.sin(radians(item.longitude - nearby[1]) / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+  }
   async function reviewSect(id,status) {
     setBusyReview(id);
     try {await fetchApi('sectReports.review',{data:{id,status,reviewNote:reviewNotes[id]}}); await fetchSectas();}
@@ -32,10 +45,14 @@ const Sectas = () => {
   const fetchSectas = async () => {
     setIsLoading(true);
     try {
-      const [registryRes, reportsRes] = await Promise.all([
-        fetchApi('sectRegistry.list', { data: { page: 1, pageSize: 50 } }).catch(() => null),
-        fetchApi('sectReports.list', { data: { page: 1, pageSize: 50 } }).catch(() => null),
+      const [registryResult, reportsResult] = await Promise.allSettled([
+        fetchApi('sectRegistry.list', { data: { page: 1, pageSize: 50 } }),
+        fetchApi('sectReports.list', { data: { page: 1, pageSize: 50 } }),
       ]);
+      if (registryResult.status === 'rejected' && reportsResult.status === 'rejected') throw registryResult.reason;
+      const registryRes = registryResult.status === 'fulfilled' ? registryResult.value : null;
+      const reportsRes = reportsResult.status === 'fulfilled' ? reportsResult.value : null;
+      if (!registryRes || !reportsRes) setFeedback({ type: 'error', message: 'No se pudo cargar parte del directorio. Intenta nuevamente.' });
 
       const approvedItems = registryRes?.items || [];
       const pendingItems = reportsRes?.items || [];
@@ -45,6 +62,8 @@ const Sectas = () => {
       if (allItems.length > 0) {
         const mapped = allItems.map((item) => ({
           id: item.id,
+          latitude: item.latitude,
+          longitude: item.longitude,
           apiStatus:item.status,
           nombre: item.sectName,
           categoria: item.status === 'PENDING' ? 'Reporte Pendiente' : 'Secta Registrada',
@@ -63,6 +82,7 @@ const Sectas = () => {
     } catch (error) {
       console.error('Error fetching sectas:', error);
       setSectasList([]);
+      setFeedback({ type: 'error', message: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -156,6 +176,7 @@ const Sectas = () => {
             </div>
           </div>
 
+          {!isAdmin && level < 2 && <p className="mb-4 text-sm text-[#d8c08b]">Las fichas se registran desde Compañero de Armas, con fecha de nacimiento y sin estar en reserva.</p>}
           <form className="space-y-5" onSubmit={handleSubmit}>
             <label className="block">
               <span className="text-[10px] uppercase tracking-widest text-[#cf5d67] font-semibold">Nombre de la secta</span>
@@ -213,7 +234,7 @@ const Sectas = () => {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || (!isAdmin && level < 2)}
               className="w-full rounded-full bg-[#cf5d67] px-4 py-3 text-[11px] font-bold uppercase tracking-widest text-white transition-all hover:opacity-90 disabled:opacity-50"
             >
               {isSubmitting ? 'Enviando...' : 'Enviar Reporte'}
@@ -222,10 +243,11 @@ const Sectas = () => {
         </article>
 
         <article className="space-y-6">
+          <div className="flex flex-wrap gap-4 text-sm text-[#d8c08b]"><button onClick={locate}>Ordenar por cercanía</button>{nearby && <button onClick={() => setNearby(null)}>Quitar orden por cercanía</button>}</div>
           {isLoading ? (
             <div className="text-center py-10 text-white/50 text-sm">Cargando registros...</div>
           ) : sectasList.length > 0 ? (
-            sectasList.map((secta) => (
+            [...sectasList].sort((a, b) => nearby ? distance(a) - distance(b) : 0).map((secta) => (
               <div key={secta.id} className="cai-card rounded-[1.5rem] border border-white/10 p-6 relative overflow-hidden group">
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div>
@@ -240,6 +262,7 @@ const Sectas = () => {
                 </div>
 
                 <p className="text-sm leading-relaxed text-white/70 mb-5">{secta.descripcion}</p>
+                {typeof secta.latitude === 'number' && typeof secta.longitude === 'number' && <p className="mb-3 text-sm text-[#d8c08b]"><a href={`https://www.openstreetmap.org/?mlat=${secta.latitude}&mlon=${secta.longitude}#map=16/${secta.latitude}/${secta.longitude}`} target="_blank" rel="noopener noreferrer">Ver ubicación pública en el mapa</a>{nearby && ` · ${distance(secta).toFixed(1)} km`}</p>}
 
                 <div className="flex flex-wrap gap-2 mb-6">
                   <span className="rounded-full bg-black/40 border border-white/5 px-3 py-1 text-[10px] uppercase tracking-widest text-white/50">

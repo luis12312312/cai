@@ -1,7 +1,7 @@
-export const loadApologetas = async (fetchApi, isAdmin) => {
+export const loadApologetas = async (fetchApi, isAdmin, filters = {}) => {
   const [members, ranks, missions] = await Promise.allSettled([
     fetchApi(isAdmin ? 'users.list' : 'members.list', {
-      data: { ...(isAdmin ? { role: 'SOLDADO_ACTIVE' } : {}), page: 1, pageSize: 50 },
+      data: { ...(isAdmin ? { role: 'SOLDADO_ACTIVE' } : {}), page: 1, pageSize: 50, ...filters },
     }),
     fetchApi('ranks.get'),
     fetchApi('missions.list', { data: { page: 1, pageSize: 1 } }),
@@ -14,6 +14,7 @@ export const loadApologetas = async (fetchApi, isAdmin) => {
 
   return {
     items: members.value.items,
+    total: members.value.total ?? members.value.items.length,
     ranks: ranks.status === 'fulfilled' && Array.isArray(ranks.value?.ranks) ? ranks.value.ranks : [],
     totalMisiones: missions.status === 'fulfilled' ? missions.value?.total ?? null : null,
     hasPartialError: ranks.status === 'rejected' || missions.status === 'rejected',
