@@ -37,7 +37,7 @@ const PublicRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   
   if (token) {
-    if (user.role === 'SOLDADO_PENDING') {
+    if (user.role === 'SOLDADO_PENDING' || user.role === 'SOLDADO_INACTIVE') {
       return <Navigate to="/pending" replace />;
     }
     if (user.role === 'SOLDADO_ACTIVE') {

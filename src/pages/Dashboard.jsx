@@ -28,6 +28,8 @@ const mapBounds = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
   const [overview, setOverview] = useState(null);
   const [progress, setProgress] = useState(null);
   const [history, setHistory] = useState(null);
@@ -56,6 +58,7 @@ const Dashboard = () => {
   }, []);
   const [missionError, setMissionError] = useState('');
   useEffect(() => {
+    if (!isAdmin) return;
     const controller = new AbortController();
     setMapError(''); setMemberMapError(''); setMapLoading(true);
     Promise.allSettled([
@@ -63,10 +66,7 @@ const Dashboard = () => {
       loadMapLocations(fetchApi, 'members.map', controller.signal).then(items => { if (!controller.signal.aborted) setMembers(items); }).catch(e => { if (!controller.signal.aborted) setMemberMapError(e.message); })
     ]).finally(() => { if (!controller.signal.aborted) setMapLoading(false); });
     return () => controller.abort();
-  }, [mapRetry]);
-
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
+  }, [isAdmin, mapRetry]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -210,7 +210,7 @@ const Dashboard = () => {
       </section>
       */}
 
-      <section className="cai-panel rounded-2xl p-4 md:p-8 border border-white/5 relative overflow-hidden flex flex-col gap-4">
+      {isAdmin && <section className="cai-panel rounded-2xl p-4 md:p-8 border border-white/5 relative overflow-hidden flex flex-col gap-4">
         <div>
           <h3 className="cai-display text-2xl md:text-3xl text-[#d8c08b]">Despliegue Global</h3>
           <p className="text-sm text-white/50">Azul: apologetas activos agrupados por ciudad. Dorado: fichas aprobadas.</p>
@@ -255,7 +255,7 @@ const Dashboard = () => {
             {filteredMembers.map(loc => <Marker key={`members-${loc.id}`} position={[loc.latitude, loc.longitude]} icon={memberIcon}><Popup><p className="font-bold">{loc.city}, {loc.country}</p>{loc.region && <p>{loc.region}</p>}<p>{loc.memberCount} apologeta{loc.memberCount === 1 ? '' : 's'} activo{loc.memberCount === 1 ? '' : 's'}</p></Popup></Marker>)}
           </MapContainer>
         </div>
-      </section>
+      </section>}
     </div>
   );
 };
