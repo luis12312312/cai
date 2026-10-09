@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../api';
+import { loadApologetas } from '../data/loadApologetas';
 import {
   filtrosApologetas,
   ordenesApologetas,
@@ -8,10 +8,11 @@ import {
 } from '../data/misionesData';
 
 const Apologetas = () => {
-  const navigate = useNavigate();
   const [apologetasList, setApologetasList] = useState([]);
-  const [totalMisiones, setTotalMisiones] = useState(0);
-  const [isLoadingApologetas, setIsLoadingApologetas] = useState(false);
+  const [totalMisiones, setTotalMisiones] = useState(null);
+  const [isLoadingApologetas, setIsLoadingApologetas] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [hasPartialError, setHasPartialError] = useState(false);
 
   useEffect(() => {
     fetchApologetas();
@@ -19,46 +20,17 @@ const Apologetas = () => {
 
   const fetchApologetas = async () => {
     setIsLoadingApologetas(true);
+    setLoadError('');
+    setHasPartialError(false);
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'REGISTRADOR';
       
-      let data = null;
-      const rankCatalog=(await fetchApi('ranks.get')).ranks;
-      let misionesCount = 0;
-      
-      if (isAdmin) {
-        try {
-          const [usersRes, missionsRes] = await Promise.all([
-            fetchApi('users.list', { data: { role: 'SOLDADO_ACTIVE', page: 1, pageSize: 50 } }),
-            fetchApi('missions.list', { data: { page: 1, pageSize: 1 } })
-          ]);
-          data = usersRes;
-          if (missionsRes && typeof missionsRes.total !== 'undefined') {
-            misionesCount = missionsRes.total;
-          }
-        } catch (err) {
-          console.warn('Error fetching /admin/users or missions for admin', err);
-        }
-      }
-      
-      if (!data && !isAdmin) {
-        try {
-          const [friendsRes, missionsRes] = await Promise.all([
-            fetchApi('members.list', { data: { page: 1, pageSize: 50 } }),
-            fetchApi('missions.list', { data: { page: 1, pageSize: 1 } })
-          ]);
-          data = friendsRes;
-          if (missionsRes && typeof missionsRes.total !== 'undefined') {
-            misionesCount = missionsRes.total;
-          }
-        } catch (err) {
-          console.warn('Error fetching /friends or missions', err);
-        }
-      }
+      const data = await loadApologetas(fetchApi, isAdmin);
+      const rankCatalog = data.ranks;
       
       let mapped = [];
-      const arrayData = data?.items || [];
+      const arrayData = data.items;
       
       if (arrayData && arrayData.length > 0) {
         const iconOptions = ['shield', 'menu_book', 'history_edu', 'flare', 'psychology', 'favorite'];
@@ -70,7 +42,7 @@ const Apologetas = () => {
           id: item.userId || item.id || `soldado-${index}`,
           nombre: item.fullName || item.name || item.userName || `Soldado ${String(item.userId || item.id).substring(0,4)}`,
           especialidad: especialidadOptions[index % especialidadOptions.length],
-          grado: rankCatalog.find(r => r.code === item.rankCode)?.name || 'Postulante',
+          grado: rankCatalog.find(r => r.code === item.rankCode)?.name || item.rankCode?.replaceAll('_', ' ') || 'Sin rango informado',
           descripcion: 'Apologeta de la plataforma CAI, activo en la red de defensores de la fe.',
           etiqueta: item.profile?.reserve ? 'Reserva' : 'Activo',
           icono: iconOptions[index % iconOptions.length],
@@ -80,11 +52,13 @@ const Apologetas = () => {
       }
 
       setApologetasList(mapped);
-      setTotalMisiones(misionesCount);
+      setTotalMisiones(data.totalMisiones);
+      setHasPartialError(data.hasPartialError);
     } catch (error) {
       console.error('Error fetching apologetas:', error);
       setApologetasList([]);
-      setTotalMisiones(0);
+      setTotalMisiones(null);
+      setLoadError(error.message || 'No se pudo obtener el listado del servidor.');
     } finally {
       setIsLoadingApologetas(false);
     }
@@ -107,8 +81,8 @@ const Apologetas = () => {
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {resumenApologetas.map((item, index) => {
           let valor = item.valor;
-          if (index === 0) valor = apologetasList.length; // Active Apologetas
-          if (index === 1) valor = totalMisiones; // Total Misiones
+          if (index === 0) valor = isLoadingApologetas || loadError ? '—' : apologetasList.length;
+          if (index === 1) valor = isLoadingApologetas ? '—' : totalMisiones ?? '—';
           
           return (
             <article key={item.etiqueta} className="cai-card rounded-2xl p-5 border border-white/5 relative overflow-hidden">
@@ -142,8 +116,21 @@ const Apologetas = () => {
       </section>
 
       <section className="space-y-4">
+        {hasPartialError && !isLoadingApologetas && (
+          <p role="status" className="text-sm text-[#d8c08b]">
+            El listado está disponible, pero no se pudieron cargar todos los rangos o el total de misiones.
+          </p>
+        )}
         {isLoadingApologetas ? (
           <div className="text-center py-10 text-white/50 text-sm">Cargando soldados...</div>
+        ) : loadError ? (
+          <div role="alert" className="cai-panel rounded-[1.5rem] border border-[#cf5d67]/30 p-10 text-center">
+            <p className="text-xl text-white">No se pudo cargar el listado de apologetas</p>
+            <p className="mt-2 text-white/70 text-sm">{loadError}</p>
+            <button onClick={fetchApologetas} className="mt-4 rounded-xl border border-[#d8c08b]/30 px-5 py-2 text-sm text-[#d8c08b]">
+              Reintentar
+            </button>
+          </div>
         ) : apologetasList.length === 0 ? (
           <div className="cai-panel rounded-[1.5rem] border border-white/5 p-10 text-center">
             <span className="material-symbols-outlined text-6xl text-white/10 mb-4">group_off</span>
